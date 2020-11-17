@@ -153,8 +153,53 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
         
     
     
-    // Plastic scintillator
+    
+    // place-holder for the source position
+    G4Sphere * sourcePlaceHolder = new G4Sphere("sourcePlaceHolder",
+                                                0, 0.1 * mm,
+                                                0.*deg,360.*deg,0.*deg,180.*deg);
+    G4LogicalVolume * logicSourcePlaceHolder = new G4LogicalVolume(sourcePlaceHolder,
+                                                                   fWorldMater ,
+                                                                   "logicSourcePlaceHolder",
+                                                                   0,0,0);
+    G4Colour SourceRed(1.0, 0.1, 0.2);
+    G4VisAttributes* sourceVisAttributes = new G4VisAttributes(SourceRed);
+    logicSourcePlaceHolder->SetVisAttributes(sourceVisAttributes);
+    new G4PVPlacement(0,                                  // no rotation
+                      G4ThreeVector(0,0,0),               // at (x,y,z)
+                      logicSourcePlaceHolder,             // its logical volume
+                      "placementSourcePlaceHolder",       // its name
+                      logicSourceHolder,                  // its mother  volume
+                      false,                              // no boolean operations
+                      0);                                 // copy number
+    // <--- end place-holder for the source position
+
+    // (plastic) source holder
+    G4ThreeVector posSourceHolder = G4ThreeVector(0 , 0 ,0 );
+    G4Box * solidSourceHolder = new G4Box("solidSourceHolder",
+                                                1.*cm/2., 2.*cm/2. ,0.5*mm/2.);
+    G4LogicalVolume * logicSourceHolder = new G4LogicalVolume(solidSourceHolder,
+                                                              fPlasticMater ,
+                                                                   "logicSourceHolder",
+                                                                   0,0,0);
+    G4Colour SourceHolderColor(0.8, 0.6, 0.7);
+    G4VisAttributes* SourceHolderVisAttributes = new G4VisAttributes(SourceHolderColor);
+    logicSourceHolder->SetVisAttributes(SourceHolderVisAttributes);
+    new G4PVPlacement(0,                                  // no rotation
+                      G4ThreeVector(0,0,0),               // at (x,y,z)
+                      logicSourceHolder,             // its logical volume
+                      "placementSourceHolder",       // its name
+                      lWorld,                             // its mother  volume
+                      false,                              // no boolean operations
+                      0);                                 // copy number
+    // <--- end source holder
+    
+    
+
+    
+    // Plastic scintillators from two sides of the source
     //
+    // CONTINUE HERE: DOUBLE THIS>>>>
     G4double Scint_dx = 3.*mm;
     G4double Scint_dy = 3.*mm;
     G4double Scint_dz = 5.*mm;
@@ -177,48 +222,10 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
                       0);              // copy number
     
     // <--- end plastic scintillator
-    
- 
-    // (plastic) source holder
-    G4ThreeVector posSourceHolder = G4ThreeVector(0 , 0 ,0 );
-    G4Box * solidSourceHolder = new G4Box("solidSourceHolder",
-                                                1.*cm/2., 3.*cm/2. ,0.1*mm/2.);
-    G4LogicalVolume * logicSourceHolder = new G4LogicalVolume(solidSourceHolder,
-                                                              fPlasticMater ,
-                                                                   "logicSourceHolder",
-                                                                   0,0,0);
-    G4Colour SourceHolderColor(0.8, 0.6, 0.7);
-    G4VisAttributes* SourceHolderVisAttributes = new G4VisAttributes(SourceHolderColor);
-    logicSourceHolder->SetVisAttributes(SourceHolderVisAttributes);
-    new G4PVPlacement(0,                                  // no rotation
-                      G4ThreeVector(0,0,0),               // at (x,y,z)
-                      logicSourceHolder,             // its logical volume
-                      "placementSourceHolder",       // its name
-                      lWorld,                             // its mother  volume
-                      false,                              // no boolean operations
-                      0);                                 // copy number
-    // <--- end source holder
+
     
     
-    // place-holder for the source position
-    G4Sphere * sourcePlaceHolder = new G4Sphere("sourcePlaceHolder",
-                                                0, 0.1 * mm,
-                                                0.*deg,360.*deg,0.*deg,180.*deg);
-    G4LogicalVolume * logicSourcePlaceHolder = new G4LogicalVolume(sourcePlaceHolder,
-                                                                   fWorldMater ,
-                                                                   "logicSourcePlaceHolder",
-                                                                   0,0,0);
-    G4Colour SourceRed(1.0, 0.1, 0.2);
-    G4VisAttributes* sourceVisAttributes = new G4VisAttributes(SourceRed);
-    logicSourcePlaceHolder->SetVisAttributes(sourceVisAttributes);
-    new G4PVPlacement(0,                                  // no rotation
-                      G4ThreeVector(0,0,0),               // at (x,y,z)
-                      logicSourcePlaceHolder,             // its logical volume
-                      "placementSourcePlaceHolder",       // its name
-                      logicSourceHolder,                  // its mother  volume
-                      false,                              // no boolean operations
-                      0);                                 // copy number
-    // <--- end place-holder for the source position
+    
     
     PrintParameters();
     // return the root volume

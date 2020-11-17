@@ -1,17 +1,32 @@
 
 
-    =========================================================
+=========================================================
 		Erez project
 	last update: Nov-16, 2020
 	based on rdecay02
-    =========================================================
+=========================================================
 
 
+
+installation:
+=========================================================
+cmake -DCMAKE_PREFIX_PATH=/Users/erezcohen/Desktop/Software/GEANT4/geant4_10_06_p03-install /Users/erezcohen/Desktop/Software/GEANT4/myProjects/rdecay2scintillator
+
+
+
+execution:
+=========================================================
 /control/execute Na22.mac
 /run/beamOn 1 
 
 
 
+
+
+
+
+
+=========================================================
                               rdecay2scintillator
                         -----------------------
 
