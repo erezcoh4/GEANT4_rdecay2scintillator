@@ -203,24 +203,39 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
     G4double Scint_dx = 3.*mm;
     G4double Scint_dy = 3.*mm;
     G4double Scint_dz = 5.*mm;
-    G4ThreeVector positionScintillator = G4ThreeVector(0 , 0 ,2*mm + Scint_dz/2. );
-    G4Box * solidSciBox = new G4Box("solidSciBox", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
-    G4LogicalVolume * logicScintillator = new G4LogicalVolume(solidSciBox,
-                                                              fDetectorMater ,
-                                                              "logicScintillator",
-                                                              0,0,0);
-    
     G4Colour ScintBlue(0.1, 0.2, 1.0);
     G4VisAttributes* ScintVisAttributes = new G4VisAttributes(ScintBlue);
-    logicScintillator->SetVisAttributes(ScintVisAttributes);
+    
+    G4ThreeVector positionScint_1 = G4ThreeVector(0 , 0 ,2*mm + Scint_dz/2. );
+    G4Box * solidScint_1 = new G4Box("solidScint_1", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
+    G4LogicalVolume * logicScint_1 = new G4LogicalVolume(solidScint_1,
+                                                              fDetectorMater ,
+                                                              "logicScint_1",
+                                                              0,0,0);
+    
+    logicScint_1->SetVisAttributes(ScintVisAttributes);
     new G4PVPlacement(0,              // no rotation
-                      positionScintillator, // at (x,y,z)
-                      logicScintillator,    // its logical volume
-                      "Scintillator",       // its name
+                      positionScint_1, // at (x,y,z)
+                      logicScint_1,    // its logical volume
+                      "Scintillator_1",       // its name
                       lWorld,      // its mother  volume
                       false,           // no boolean operations
                       0);              // copy number
+    G4ThreeVector positionScint_2 = G4ThreeVector(0 , 0 ,-2*mm - Scint_dz/2. );
+    G4Box * solidScint_2 = new G4Box("solidScint_2", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
+    G4LogicalVolume * logicScint_2 = new G4LogicalVolume(solidScint_2,
+                                                              fDetectorMater ,
+                                                              "logicScint_2",
+                                                              0,0,0);
     
+    logicScint_2->SetVisAttributes(ScintVisAttributes);
+    new G4PVPlacement(0,              // no rotation
+                      positionScint_2, // at (x,y,z)
+                      logicScint_2,    // its logical volume
+                      "Scintillator_2",       // its name
+                      lWorld,      // its mother  volume
+                      false,           // no boolean operations
+                      0);
     // <--- end plastic scintillator
 
     
