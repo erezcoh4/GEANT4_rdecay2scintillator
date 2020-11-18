@@ -119,7 +119,7 @@ void RunAction::EndOfRunAction(const G4Run*)
     }
     
     // show Rndm status
-    if (isMaster) G4Random::showEngineStatus();
+    if (isMaster) G4Random::showEngineStatus();    
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

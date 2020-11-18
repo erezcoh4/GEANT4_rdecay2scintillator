@@ -112,15 +112,19 @@ void EventAction::EndOfEventAction(const G4Event*evt)
     run->AddEdep (fEdep1, fEdep2);
     
     
-    
+    G4cout << "event " << evt -> GetEventID() << ",opening output csv and write data" << G4endl;
     // open output csv and write data
     csvfile.open("particles.csv", std::ios_base::app);
     // extract event data
     
     G4int eventId = evt -> GetEventID();
     // trajectory container
-    G4TrajectoryContainer * trajCont = evt -> GetTrajectoryContainer ();
+    G4TrajectoryContainer * trajCont = evt -> GetTrajectoryContainer();
+    size_t trajCont_size = trajCont->size();
+    
+    G4cout << "trajCont_size: " << trajCont_size << G4endl;
     G4int NtrajCont = trajCont -> entries();
+    G4cout << "NtrajCont: " << NtrajCont << G4endl;
     
     std::vector< G4VTrajectory * > * trajectories = trajCont -> GetVector ();
     for (auto traj:*trajectories){
@@ -142,14 +146,40 @@ void EventAction::EndOfEventAction(const G4Event*evt)
         << pInit.x()        << ","
         << pInit.y()        << ","
         << pInit.z()        << ","
+        << pInit.mag()      << ","
+        << Etot
         << std::endl;
         
     }
+    
+    // hits collection
+    G4cout <<  "// hits collection" << G4endl;
+    try {
+        G4cout << "G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent() for event " << eventId << G4endl;
+        G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent();
+        G4int NhitCols = sizeof(hitsCol)/sizeof(hitsCol[0]);
         
+        //        G4int NhitCols = hitsCol -> GetNumberOfCollections();
+        //        G4cout << NhitCols << G4endl;
+        G4cout << "we have " << NhitCols << " hit collections in event " << eventId << G4endl;
+        std::cout << "we have " << NhitCols << " hit collections in event " << eventId << std::endl;
+        if (NhitCols>=1){
+            for (G4int hitColIdx=0; hitColIdx<NhitCols; hitColIdx++){
+                G4VHitsCollection * HC = hitsCol -> GetHC (hitColIdx);
+                // CONTINUE HERE: WHY THE FUCK CAN WE NOT SEE HC>????
+//                G4String SDname = HC -> GetSDname ();
+//                size_t HCsize = HC -> GetSize ();
+//                G4cout << "hit collection in " << SDname << " of size " << HCsize << G4endl;
+            }
+        }
+    } catch (...) {
+        G4cout << "no hit collections in event " << eventId << G4endl;
+    }
     
     
     // close file
     csvfile.close();
+    G4cout << "closed file at event " << evt -> GetEventID() << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

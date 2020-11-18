@@ -119,7 +119,6 @@ void DetectorConstruction::DefineMaterials()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
 {
     // Cleanup old geometry
@@ -206,7 +205,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
     G4Colour ScintBlue(0.1, 0.2, 1.0);
     G4VisAttributes* ScintVisAttributes = new G4VisAttributes(ScintBlue);
     
-    G4ThreeVector positionScint_1 = G4ThreeVector(0 , 0 ,2*mm + Scint_dz/2. );
+    G4ThreeVector positionScint_1 = G4ThreeVector(0 , 0 ,0.2*mm + Scint_dz/2. );
     G4Box * solidScint_1 = new G4Box("solidScint_1", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
     logicScint_1 = new G4LogicalVolume(solidScint_1,
                                                               fDetectorMater ,
@@ -221,7 +220,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
                       lWorld,      // its mother  volume
                       false,           // no boolean operations
                       0);              // copy number
-    G4ThreeVector positionScint_2 = G4ThreeVector(0 , 0 ,-2*mm - Scint_dz/2. );
+    G4ThreeVector positionScint_2 = G4ThreeVector(0 , 0 ,-0.2*mm - Scint_dz/2. );
     G4Box * solidScint_2 = new G4Box("solidScint_2", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
     logicScint_2 = new G4LogicalVolume(solidScint_2,
                                                               fDetectorMater ,
@@ -242,7 +241,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
     
     
     
-    
+    G4cout << "done G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()." << G4endl;
     // return the root volume
     return fPhysiWorld;
 }
