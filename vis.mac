@@ -45,7 +45,7 @@
 /vis/geometry/set/visibility World 0 false
 #
 # Draw coordinate axes:
-/vis/scene/add/axes 0 0 0 1 mm
+# /vis/scene/add/axes 0 0 0 1 mm
 #
 # Draw smooth trajectories at end of event, showing trajectory points
 # as markers 2 pixels wide:

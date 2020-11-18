@@ -45,8 +45,8 @@
 
 EventAction::EventAction()
 :G4UserEventAction(),
- fEdep1(0.), fEdep2(0.), fWeight1(0.), fWeight2(0.),
- fTime0(-1*s)
+fEdep1(0.), fEdep2(0.), fWeight1(0.), fWeight2(0.),
+fTime0(-1*s)
 { } 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -58,79 +58,97 @@ EventAction::~EventAction()
 
 void EventAction::BeginOfEventAction(const G4Event*)
 {
-  fEdep1 = fEdep2 = fWeight1 = fWeight2 = 0.;
-  fTime0 = -1*s;
+    fEdep1 = fEdep2 = fWeight1 = fWeight2 = 0.;
+    fTime0 = -1*s;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void EventAction::AddEdep(G4int iVol, G4double edep,
-                                      G4double time, G4double weight)
+                          G4double time, G4double weight)
 {
-  // initialize t0
-  if (fTime0 < 0.) fTime0 = time;
-  
-  // out of time window ?
-  const G4double TimeWindow (1*microsecond);
-  if (std::fabs(time - fTime0) > TimeWindow) return;
-  
-  if (iVol == 1) { fEdep1 += edep; fWeight1 += edep*weight;}
-  if (iVol == 2) { fEdep2 += edep; fWeight2 += edep*weight;}  
+    // initialize t0
+    if (fTime0 < 0.) fTime0 = time;
+    
+    // out of time window ?
+    const G4double TimeWindow (1*microsecond);
+    if (std::fabs(time - fTime0) > TimeWindow) return;
+    
+    if (iVol == 1) { fEdep1 += edep; fWeight1 += edep*weight;}
+    if (iVol == 2) { fEdep2 += edep; fWeight2 += edep*weight;}
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void EventAction::EndOfEventAction(const G4Event*)
+void EventAction::EndOfEventAction(const G4Event*evt)
 {
- G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
- 
- G4double Etot = fEdep1 + fEdep2;
- G4double Wtot = (fWeight1 + fWeight2)/Etot;
- 
- // pulse height in target
- //
- if (fEdep1 > 0.) {
-   fWeight1 /= fEdep1;
-   analysisManager->FillH1(0, fEdep1, fWeight1);   
- }
- 
- // pulse height in detector
- //   
- if (fEdep2 > 0.) {
-   fWeight2 /= fEdep2;
-   analysisManager->FillH1(1, fEdep2, fWeight2);
- }
-   
- // total
- //
- analysisManager->FillH1(2, Etot, Wtot);
- 
- // threshold in target and detector        
- const G4double Threshold1(10*keV), Threshold2(10*keV);
-  
- //coincidence, anti-coincidences 
- //  
- G4bool coincidence       = ((fEdep1 >= Threshold1) && (fEdep2 >= Threshold2));
- G4bool anti_coincidence1 = ((fEdep1 >= Threshold1) && (fEdep2 <  Threshold2));
- G4bool anti_coincidence2 = ((fEdep1 <  Threshold1) && (fEdep2 >= Threshold2)); 
-
- if (coincidence)       analysisManager->FillH1(3, fEdep2, fWeight2);
- if (anti_coincidence1) analysisManager->FillH1(4, fEdep1, fWeight1);
- if (anti_coincidence2) analysisManager->FillH1(5, fEdep2, fWeight2); 
-
- // pass energies to Run
- //  
- Run* run = static_cast<Run*>(
-            G4RunManager::GetRunManager()->GetNonConstCurrentRun());
-             
- run->AddEdep (fEdep1, fEdep2);
+    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    
+    G4double Etot = fEdep1 + fEdep2;
+    G4double Wtot = (fWeight1 + fWeight2)/Etot;
+    // pulse height in target
+    if (fEdep1 > 0.) {
+        fWeight1 /= fEdep1;
+        analysisManager->FillH1(0, fEdep1, fWeight1);
+    }
+    // pulse height in detector
+    if (fEdep2 > 0.) {
+        fWeight2 /= fEdep2;
+        analysisManager->FillH1(1, fEdep2, fWeight2);
+    }
+    // total
+    analysisManager->FillH1(2, Etot, Wtot);
+    // threshold in target and detector
+    const G4double Threshold1(10*keV), Threshold2(10*keV);
+    //coincidence, anti-coincidences
+    G4bool coincidence       = ((fEdep1 >= Threshold1) && (fEdep2 >= Threshold2));
+    G4bool anti_coincidence1 = ((fEdep1 >= Threshold1) && (fEdep2 <  Threshold2));
+    G4bool anti_coincidence2 = ((fEdep1 <  Threshold1) && (fEdep2 >= Threshold2));
+    if (coincidence)       analysisManager->FillH1(3, fEdep2, fWeight2);
+    if (anti_coincidence1) analysisManager->FillH1(4, fEdep1, fWeight1);
+    if (anti_coincidence2) analysisManager->FillH1(5, fEdep2, fWeight2);
+    // pass energies to Run
+    Run* run = static_cast<Run*>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+    run->AddEdep (fEdep1, fEdep2);
     
     
     
-    // output csv
-    
+    // open output csv and write data
     csvfile.open("particles.csv", std::ios_base::app);
-    csvfile << "particles...."  << ",Etot:" << Etot << std::endl;
+    // extract event data
+    
+    G4int eventId = evt -> GetEventID();
+    // trajectory container
+    G4TrajectoryContainer * trajCont = evt -> GetTrajectoryContainer ();
+    G4int NtrajCont = trajCont -> entries();
+    
+    std::vector< G4VTrajectory * > * trajectories = trajCont -> GetVector ();
+    for (auto traj:*trajectories){
+        
+        G4String ParticleName = traj->GetParticleName() ;
+        G4int PDGcode = traj->GetPDGEncoding();
+        G4int trackID = traj->GetTrackID ();
+        G4int parentID = traj->GetParentID ();
+        G4ThreeVector pInit = traj->GetInitialMomentum ();
+        
+        // for each particle, we dedicate a line in the csv file
+        csvfile
+        << eventId          << ","
+        << NtrajCont        << ","
+        << trackID          << ","
+        << parentID         << ","
+        << PDGcode          << ","
+        << ParticleName     << ","
+        << pInit.x()        << ","
+        << pInit.y()        << ","
+        << pInit.z()        << ","
+        << std::endl;
+        
+    }
+        
+    
+    
+    // close file
     csvfile.close();
 }
 

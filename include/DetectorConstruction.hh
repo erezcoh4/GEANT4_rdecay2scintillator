@@ -75,7 +75,15 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4double GetDetectorThickness();
     G4Material* GetDetectorMaterial();                 
     G4LogicalVolume* GetLogicDetector();      
-                       
+         
+    
+    
+    G4LogicalVolume * logicScint_1;
+    G4LogicalVolume * GetLogicScint_1(){ return logicScint_1; };
+    G4LogicalVolume * logicScint_2;
+    G4LogicalVolume * GetLogicScint_2(){ return logicScint_2; };
+    
+    
   private:
   
     G4double           fTargetLength; 
