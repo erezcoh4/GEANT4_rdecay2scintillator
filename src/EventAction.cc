@@ -166,10 +166,14 @@ void EventAction::EndOfEventAction(const G4Event*evt)
         if (NhitCols>=1){
             for (G4int hitColIdx=0; hitColIdx<NhitCols; hitColIdx++){
                 G4VHitsCollection * HC = hitsCol -> GetHC (hitColIdx);
-                // CONTINUE HERE: WHY THE FUCK CAN WE NOT SEE HC>????
-//                G4String SDname = HC -> GetSDname ();
-//                size_t HCsize = HC -> GetSize ();
-//                G4cout << "hit collection in " << SDname << " of size " << HCsize << G4endl;
+                G4int NHC = sizeof(HC)/sizeof(HC[0]);
+                G4cout << NHC << " hits in hit collection " << hitColIdx << G4endl;
+                if (NHC>0){                    
+                    G4String SDname = HC -> GetSDname ();
+                    size_t HCsize = HC -> GetSize ();
+                    G4cout << "hit collection in " << SDname << " of size " << HCsize << G4endl;
+                }
+                
             }
         }
     } catch (...) {
