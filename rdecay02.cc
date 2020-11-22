@@ -54,7 +54,7 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc,char** argv) {
-    
+    int fdebug = 0 ;
     //detect interactive mode (if no arguments) and define UI session
     G4UIExecutive* ui = 0;
     if (argc == 1) ui = new G4UIExecutive(argc,argv);
@@ -106,11 +106,11 @@ int main(int argc,char** argv) {
         //   visManager = new G4VisExecutive;
         //   visManager->Initialize();
         // interactive mode
-        std::cout << "UImanager->ApplyCommand(/control/execute erez_vis.mac);" << std::endl;
+        if (fdebug>1) std::cout << "UImanager->ApplyCommand(/control/execute erez_vis.mac);" << std::endl;
         UImanager->ApplyCommand("/control/execute erez_vis.mac");
-        std::cout << "ui->SessionStart();" << std::endl;
+        if (fdebug>1) std::cout << "ui->SessionStart();" << std::endl;
         ui->SessionStart();
-        std::cout << "delete ui;" << std::endl;
+        if (fdebug>1) std::cout << "delete ui;" << std::endl;
         delete ui;
     }
     else  {

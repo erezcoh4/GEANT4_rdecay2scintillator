@@ -68,9 +68,10 @@ void Run::SetPrimary(G4ParticleDefinition* particle, G4double energy)
 
 void Run::CountProcesses(const G4VProcess* process, G4int iVol) 
 {
-    std::cout << "Run::CountProcesses(const G4VProcess* process, G4int iVol)" << std::endl;
+    int fdebug = 0;
+    if (fdebug>1) std::cout << "Run::CountProcesses(const G4VProcess* process, G4int iVol)" << std::endl;
     G4String procName = process->GetProcessName();
-    std::cout << "procName" << std::endl;
+    if (fdebug>1) std::cout << "procName" << std::endl;
     if (iVol == 1) {
         std::map<G4String,G4int>::iterator it1 = fProcCounter1.find(procName);
         if ( it1 == fProcCounter1.end()) {
@@ -90,7 +91,7 @@ void Run::CountProcesses(const G4VProcess* process, G4int iVol)
             fProcCounter2[procName]++;
         }
     }
-    std::cout << "done Run::CountProcesses(const G4VProcess* process, G4int iVol)" << std::endl;
+    if (fdebug>1) std::cout << "done Run::CountProcesses(const G4VProcess* process, G4int iVol)" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -249,14 +250,16 @@ void Run::Merge(const G4Run* run)
 
 void Run::EndOfRun() 
 {
-    std::cout << "start Run::EndOfRun()" << std::endl;
+    int fdebug=0;
+    
+    if (fdebug>1) std::cout << "start Run::EndOfRun()" << std::endl;
     G4int prec = 5, wid = prec + 2;
     G4int dfprec = G4cout.precision(prec);
     
     // run condition
     //
     G4String Particle = fParticle->GetParticleName();
-    std::cout << "\n The run is " << numberOfEvent << " "<< Particle << " of "
+    if (fdebug>1) std::cout << "\n The run is " << numberOfEvent << " "<< Particle << " of "
     << G4BestUnit(fEkin,"Energy") << " through : ";
     
     //    std::cout << "\n Target   : Length = "
@@ -274,7 +277,7 @@ void Run::EndOfRun()
     
     if (numberOfEvent == 0) { G4cout.precision(dfprec);   return;}
     
-    std::cout << "compute mean Energy deposited and rms in target" << std::endl;
+    if (fdebug>1) std::cout << "compute mean Energy deposited and rms in target" << std::endl;
     // compute mean Energy deposited and rms in target
     //
     G4int TotNbofEvents = numberOfEvent;
@@ -288,7 +291,7 @@ void Run::EndOfRun()
     << G4BestUnit(rmsEdep,    "Energy")
     << G4endl;
     
-    std::cout << "compute mean Energy deposited and rms in detector" << std::endl;
+    if (fdebug>1) std::cout << "compute mean Energy deposited and rms in detector" << std::endl;
     // compute mean Energy deposited and rms in detector
     //
     fEdepDetect /= TotNbofEvents; fEdepDetect2 /= TotNbofEvents;
@@ -315,7 +318,7 @@ void Run::EndOfRun()
     }
     G4cout << G4endl;
     
-    std::cout << "frequency of processes in detector" << std::endl;
+    if (fdebug>1) std::cout << "frequency of processes in detector" << std::endl;
     // frequency of processes in detector
     //
     G4cout << "\n Process calls frequency in detector:" << G4endl;
@@ -330,7 +333,7 @@ void Run::EndOfRun()
     }
     G4cout << G4endl;
     
-    std::cout << "particles count in target" << std::endl;
+    if (fdebug>1) std::cout << "particles count in target" << std::endl;
     // particles count in target
     //
     G4cout << "\n List of generated particles in target:" << G4endl;
@@ -351,7 +354,7 @@ void Run::EndOfRun()
         << ")" << G4endl;
     }
     
-    std::cout << "particles count in detector" << std::endl;
+    if (fdebug>1) std::cout << "particles count in detector" << std::endl;
     // particles count in detector
     //
     G4cout << "\n List of generated particles in detector:" << G4endl;
@@ -372,7 +375,7 @@ void Run::EndOfRun()
     }
     G4cout << G4endl;
     
-    std::cout << "activities in VR mode" << std::endl;
+    if (fdebug>1) std::cout << "activities in VR mode" << std::endl;
     // activities in VR mode
     //
     WriteActivity(numberOfEvent);
@@ -385,7 +388,7 @@ void Run::EndOfRun()
     
     //restore default format
     G4cout.precision(dfprec);
-    std::cout << "done Run::EndOfRun()" << std::endl;
+    if (fdebug>1) std::cout << "done Run::EndOfRun()" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

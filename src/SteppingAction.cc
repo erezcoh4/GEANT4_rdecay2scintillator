@@ -56,13 +56,14 @@ SteppingAction::~SteppingAction()
 
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
-    std::cout << "SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
+    int fdebug = 0;
+    if (fdebug>1) std::cout << "SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
     Run* run = static_cast<Run*>(
                                  G4RunManager::GetRunManager()->GetNonConstCurrentRun());
     
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
     
-    std::cout << "//which volume ?" << std::endl;
+    if (fdebug>1) std::cout << "//which volume ?" << std::endl;
     //which volume ?
     //
     G4LogicalVolume* lVolume = aStep->GetPreStepPoint()->GetTouchableHandle()
@@ -71,33 +72,33 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     if (lVolume == fDetector->GetLogicScint_1()) iVol = 1;
     if (lVolume == fDetector->GetLogicScint_2()) iVol = 2;
 
-    std::cout << "//count processes" << std::endl;
+    if (fdebug>1) std::cout << "//count processes" << std::endl;
     // count processes
     //
     const G4StepPoint* startPoint = aStep->GetPreStepPoint();
     const G4StepPoint* endPoint = aStep->GetPostStepPoint();
     
-    std::cout << "startPoint: "      << "("
+    if (fdebug>1) std::cout << "startPoint: "      << "("
     << endPoint->GetPosition().x() << ","
     << endPoint->GetPosition().y() << ","
     << endPoint->GetPosition().z() << ")"
     << std::endl;
     
-    std::cout << "endPoint: "      << "("
+    if (fdebug>1) std::cout << "endPoint: "      << "("
     << endPoint->GetPosition().x() << ","
     << endPoint->GetPosition().y() << ","
     << endPoint->GetPosition().z() << ")"
     << std::endl;
     
     G4double stepLength = aStep -> GetStepLength();
-    std::cout << "stepLength: " << stepLength / CLHEP::nm << "nm" << std::endl;
+    if (fdebug>1) std::cout << "stepLength: " << stepLength / CLHEP::nm << "nm" << std::endl;
     if (fabs(stepLength / CLHEP::nm)<1) return;
     
     const G4VProcess* process   = endPoint->GetProcessDefinedStep();
-    std::cout << "process: " << process->GetProcessName() << std::endl;
+    if (fdebug>1) std::cout << "process: " << process->GetProcessName() << std::endl;
     run->CountProcesses(process, iVol);
     
-    std::cout << "//energy deposit" << std::endl;
+    if (fdebug>1) std::cout << "//energy deposit" << std::endl;
     // energy deposit
     //
     G4double edepStep = aStep->GetTotalEnergyDeposit();
@@ -106,14 +107,23 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     G4double weight = aStep->GetPreStepPoint()->GetWeight();
     fEventAction->AddEdep(iVol, edepStep, time, weight);
     
-    std::cout << "//fill ntuple id = 2" << std::endl;
+    if (fdebug>1) std::cout << "//fill ntuple id = 2" << std::endl;
     //fill ntuple id = 2
     G4int id = 2;
     analysisManager->FillNtupleDColumn(id,0, edepStep);
     analysisManager->FillNtupleDColumn(id,1, time/s);
     analysisManager->FillNtupleDColumn(id,2, weight);
     analysisManager->AddNtupleRow(id);
-    std::cout << "done SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
+    if (fdebug>1) std::cout << "done SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
+    
+    // continue here:
+    // stream step energy deposit into output csv:
+    // for each event, sum energy deposition in each detector,
+    // and record it to output file:
+    //
+    // event, detector, particle type, track id, parent id, Edep, weight, time, process name, start x,y,z, end x,y,z
+    
+    
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

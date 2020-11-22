@@ -58,10 +58,11 @@ EventAction::~EventAction()
 
 void EventAction::BeginOfEventAction(const G4Event*)
 {
-    std::cout << "EventAction::BeginOfEventAction(const G4Event*)" << std::endl;
+    int fdebug = 0;
+    if (fdebug>1) std::cout << "EventAction::BeginOfEventAction(const G4Event*)" << std::endl;
     fEdep1 = fEdep2 = fWeight1 = fWeight2 = 0.;
     fTime0 = -1*s;
-    std::cout << "done EventAction::BeginOfEventAction(const G4Event*)" << std::endl;
+    if (fdebug>1) std::cout << "done EventAction::BeginOfEventAction(const G4Event*)" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -69,7 +70,8 @@ void EventAction::BeginOfEventAction(const G4Event*)
 void EventAction::AddEdep(G4int iVol, G4double edep,
                           G4double time, G4double weight)
 {
-    std::cout << "EventAction::AddEdep()" << std::endl;
+    int fdebug = 0;
+    if (fdebug>1) std::cout << "EventAction::AddEdep()" << std::endl;
     // initialize t0
     if (fTime0 < 0.) fTime0 = time;
     
@@ -79,14 +81,15 @@ void EventAction::AddEdep(G4int iVol, G4double edep,
     
     if (iVol == 1) { fEdep1 += edep; fWeight1 += edep*weight;}
     if (iVol == 2) { fEdep2 += edep; fWeight2 += edep*weight;}
-    std::cout << "done EventAction::AddEdep()" << std::endl;
+    if (fdebug>1) std::cout << "done EventAction::AddEdep()" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void EventAction::EndOfEventAction(const G4Event*evt)
 {
-    std::cout << "EventAction::EndOfEventAction(const G4Event*evt)" << std::endl;
+    int fdebug = 2;
+    if (fdebug>0) std::cout << "EventAction::EndOfEventAction(const G4Event*evt)" << std::endl;
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
     
     G4double Etot = fEdep1 + fEdep2;
@@ -117,7 +120,7 @@ void EventAction::EndOfEventAction(const G4Event*evt)
     run->AddEdep (fEdep1, fEdep2);
     
     
-    std::cout << "event " << evt -> GetEventID() << ",opening output csv and write data" << std::endl;
+    if (fdebug>0) std::cout << "event " << evt -> GetEventID() << ",opening output csv and write data" << std::endl;
     // open output csv and write data
     csvfile.open("particles.csv", std::ios_base::app);
     // extract event data
@@ -127,9 +130,9 @@ void EventAction::EndOfEventAction(const G4Event*evt)
     G4TrajectoryContainer * trajCont = evt -> GetTrajectoryContainer();
     size_t trajCont_size = trajCont->size();
 
-    std::cout << "trajCont_size: " << trajCont_size << std::endl;
+    if (fdebug>1) std::cout << "trajCont_size: " << trajCont_size << std::endl;
     G4int NtrajCont = trajCont -> entries();
-    std::cout << "NtrajCont: " << NtrajCont << std::endl;
+    if (fdebug>1) std::cout << "NtrajCont: " << NtrajCont << std::endl;
 
     std::vector< G4VTrajectory * > * trajectories = trajCont -> GetVector ();
     for (auto traj:*trajectories){
@@ -156,32 +159,40 @@ void EventAction::EndOfEventAction(const G4Event*evt)
         << std::endl;
         
     }
-    std::cout << "closing csv file..." << std::endl;
-    // hits collection
-    std::cout <<  "// hits collection" << std::endl;
     
-    std::cout << "G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent() for event " << eventId << std::endl;
+    // hits collection
+    if (fdebug>1) std::cout <<  "hits collection: " << std::endl;
+    
+    if (fdebug>1) std::cout << "G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent() for event " << eventId << std::endl;
     G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent();
     G4int NhitCols = sizeof(hitsCol)/sizeof(hitsCol[0]);
     
-    G4cout << "we have " << NhitCols << " hit collections in event " << eventId << G4endl;
-    std::cout << "we have " << NhitCols << " hit collections in event " << eventId << std::endl;
+    
+    if (fdebug>1) std::cout << "we have " << NhitCols << " hit collections in event " << eventId << std::endl;
     if (NhitCols>=1){
         for (G4int hitColIdx=0; hitColIdx<NhitCols; hitColIdx++){
             G4VHitsCollection * HC = hitsCol -> GetHC (hitColIdx);
             G4int NHC = sizeof(HC)/sizeof(HC[0]);
             std::cout << NHC << " hits in hit collection " << hitColIdx << std::endl;
+            
             if (NHC>0){
                 G4String SDname = HC -> GetSDname ();
                 size_t HCsize = HC -> GetSize ();
-                std::cout << "hit collection in " << SDname << " of size " << HCsize << std::endl;
+                if (fdebug>1) std::cout << "hit collection in " << SDname << " of size " << HCsize << std::endl;
+                HC -> PrintAllHits ();
+//                for (size_t hitIdx=0; hitIdx<HCsize; hitIdx++){
+//                    G4VHit * hit = HC -> GetHit(hitIdx);
+//                    hit -> Print();
+//                }
+                
+                
             }
             
         }
         
         // close file
         csvfile.close();
-        std::cout << "closed file at event " << evt -> GetEventID() << std::endl;
+        if (fdebug>1) std::cout << "closed file at event " << evt -> GetEventID() << std::endl;
     }
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
