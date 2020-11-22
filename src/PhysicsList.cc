@@ -40,6 +40,7 @@
 #include "G4NuclideTable.hh"
 #include "G4IonConstructor.hh"
 #include "G4PhysicsListHelper.hh"
+#include "QBBC.hh"
 
 #include "G4EmStandardPhysics.hh"
 #include "G4EmExtraPhysics.hh"
@@ -64,6 +65,8 @@
 #include "G4BaryonConstructor.hh"
 #include "G4IonConstructor.hh"
 #include "G4ShortLivedConstructor.hh"
+
+#include "G4EmPenelopePhysics.hh"
 
 
 PhysicsList::PhysicsList()
@@ -94,11 +97,11 @@ PhysicsList::PhysicsList()
     //read new PhotonEvaporation data set
     //
     G4DeexPrecoParameters* deex =
-      G4NuclearLevelData::GetInstance()->GetParameters();
-    deex->SetCorrelatedGamma(false);
+    G4NuclearLevelData::GetInstance()->GetParameters();
+    deex->SetCorrelatedGamma(true);
     deex->SetStoreAllLevels(true);
     deex->SetMaxLifeTime(G4NuclideTable::GetInstance()->GetThresholdOfHalfLife()
-                  /std::log(2.));
+                         /std::log(2.));
     
     
     
@@ -120,15 +123,19 @@ PhysicsList::PhysicsList()
     
     // Hadron Inelastic physics
     RegisterPhysics( new G4HadronPhysicsFTFP_BERT(verb));
-    ////RegisterPhysics( new G4HadronInelasticQBBC(verb));
-    ////RegisterPhysics( new G4HadronPhysicsINCLXX(verb));
+    RegisterPhysics( new G4HadronInelasticQBBC(verb));
+    RegisterPhysics( new G4HadronPhysicsINCLXX(verb));
     
     // Ion Elastic scattering
     RegisterPhysics( new G4IonElasticPhysics(verb));
     
     // Ion Inelastic physics
     RegisterPhysics( new G4IonPhysics(verb));
-    ////RegisterPhysics( new G4IonINCLXXPhysics(verb));
+    RegisterPhysics( new G4IonINCLXXPhysics(verb));
+    
+    // for positron annihilation
+    RegisterPhysics( new G4EmPenelopePhysics() );
+    
     
     
     
@@ -185,31 +192,40 @@ void PhysicsList::SetCuts()
 
 void PhysicsList::ConstructProcess()
 {
-  AddTransportation();
+    AddTransportation();
+    
+    G4Radioactivation* radioactiveDecay = new G4Radioactivation();
+    
+    G4bool ARMflag = false;
+    radioactiveDecay->SetARM(ARMflag);        //Atomic Rearangement
+    
+    // need to initialize atomic deexcitation
+    //
+    G4LossTableManager* man = G4LossTableManager::Instance();
+    G4VAtomDeexcitation* deex = man->AtomDeexcitation();
+    if (!deex) {
+        ///G4EmParameters::Instance()->SetFluo(true);
+        G4EmParameters::Instance()->SetAugerCascade(ARMflag);
+        deex = new G4UAtomicDeexcitation();
+        deex->InitialiseAtomicDeexcitation();
+        man->SetAtomDeexcitation(deex);
+    }
+    
+    // register radioactiveDecay
+    //
+    G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
+    ph->RegisterProcess(radioactiveDecay, G4GenericIon::GenericIon());
+    
+    
+    // penelope annihilation
+    G4VPhysicsConstructor* emPhysicsList = new G4EmPenelopePhysics();
+    emPhysicsList->ConstructProcess();
+    
 
-  G4Radioactivation* radioactiveDecay = new G4Radioactivation();
 
-  G4bool ARMflag = false;
-  radioactiveDecay->SetARM(ARMflag);        //Atomic Rearangement
-
-  // need to initialize atomic deexcitation
-  //
-  G4LossTableManager* man = G4LossTableManager::Instance();
-  G4VAtomDeexcitation* deex = man->AtomDeexcitation();
-  if (!deex) {
-     ///G4EmParameters::Instance()->SetFluo(true);
-     G4EmParameters::Instance()->SetAugerCascade(ARMflag);
-     deex = new G4UAtomicDeexcitation();
-     deex->InitialiseAtomicDeexcitation();
-     man->SetAtomDeexcitation(deex);
-  }
-
-  // register radioactiveDecay
-  //
-  G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
-  ph->RegisterProcess(radioactiveDecay, G4GenericIon::GenericIon());
-
-  //printout
-  //
-  G4cout << "\n  Set atomic relaxation mode " << ARMflag << G4endl;
+    
+    
+    //printout
+    //
+    G4cout << "\n  Set atomic relaxation mode " << ARMflag << G4endl;
 }

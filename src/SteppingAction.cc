@@ -40,7 +40,7 @@
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4UnitsTable.hh"
-                           
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 SteppingAction::SteppingAction(DetectorConstruction* det, EventAction* event)
@@ -56,39 +56,64 @@ SteppingAction::~SteppingAction()
 
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
-  Run* run = static_cast<Run*>(
-        G4RunManager::GetRunManager()->GetNonConstCurrentRun());    
-  
-  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    std::cout << "SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
+    Run* run = static_cast<Run*>(
+                                 G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+    
+    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    
+    std::cout << "//which volume ?" << std::endl;
+    //which volume ?
+    //
+    G4LogicalVolume* lVolume = aStep->GetPreStepPoint()->GetTouchableHandle()
+    ->GetVolume()->GetLogicalVolume();
+    G4int iVol = 0;
+    if (lVolume == fDetector->GetLogicScint_1()) iVol = 1;
+    if (lVolume == fDetector->GetLogicScint_2()) iVol = 2;
 
-  //which volume ?
-  //
-  G4LogicalVolume* lVolume = aStep->GetPreStepPoint()->GetTouchableHandle()
-                             ->GetVolume()->GetLogicalVolume();
-  G4int iVol = 0;
-  if (lVolume == fDetector->GetLogicTarget())   iVol = 1;
-  if (lVolume == fDetector->GetLogicDetector()) iVol = 2;
-
-  // count processes
-  // 
-  const G4StepPoint* endPoint = aStep->GetPostStepPoint();
-  const G4VProcess* process   = endPoint->GetProcessDefinedStep();
-  run->CountProcesses(process, iVol);
-  
-  // energy deposit
-  //
-  G4double edepStep = aStep->GetTotalEnergyDeposit();
-  if (edepStep <= 0.) return;
-  G4double time   = aStep->GetPreStepPoint()->GetGlobalTime();
-  G4double weight = aStep->GetPreStepPoint()->GetWeight();   
-  fEventAction->AddEdep(iVol, edepStep, time, weight);
-  
-  //fill ntuple id = 2
-  G4int id = 2;   
-  analysisManager->FillNtupleDColumn(id,0, edepStep);
-  analysisManager->FillNtupleDColumn(id,1, time/s);
-  analysisManager->FillNtupleDColumn(id,2, weight);
-  analysisManager->AddNtupleRow(id);      
+    std::cout << "//count processes" << std::endl;
+    // count processes
+    //
+    const G4StepPoint* startPoint = aStep->GetPreStepPoint();
+    const G4StepPoint* endPoint = aStep->GetPostStepPoint();
+    
+    std::cout << "startPoint: "      << "("
+    << endPoint->GetPosition().x() << ","
+    << endPoint->GetPosition().y() << ","
+    << endPoint->GetPosition().z() << ")"
+    << std::endl;
+    
+    std::cout << "endPoint: "      << "("
+    << endPoint->GetPosition().x() << ","
+    << endPoint->GetPosition().y() << ","
+    << endPoint->GetPosition().z() << ")"
+    << std::endl;
+    
+    G4double stepLength = aStep -> GetStepLength();
+    std::cout << "stepLength: " << stepLength / CLHEP::nm << "nm" << std::endl;
+    if (fabs(stepLength / CLHEP::nm)<1) return;
+    
+    const G4VProcess* process   = endPoint->GetProcessDefinedStep();
+    std::cout << "process: " << process->GetProcessName() << std::endl;
+    run->CountProcesses(process, iVol);
+    
+    std::cout << "//energy deposit" << std::endl;
+    // energy deposit
+    //
+    G4double edepStep = aStep->GetTotalEnergyDeposit();
+    if (edepStep <= 0.) return;
+    G4double time   = aStep->GetPreStepPoint()->GetGlobalTime();
+    G4double weight = aStep->GetPreStepPoint()->GetWeight();
+    fEventAction->AddEdep(iVol, edepStep, time, weight);
+    
+    std::cout << "//fill ntuple id = 2" << std::endl;
+    //fill ntuple id = 2
+    G4int id = 2;
+    analysisManager->FillNtupleDColumn(id,0, edepStep);
+    analysisManager->FillNtupleDColumn(id,1, time/s);
+    analysisManager->FillNtupleDColumn(id,2, weight);
+    analysisManager->AddNtupleRow(id);
+    std::cout << "done SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

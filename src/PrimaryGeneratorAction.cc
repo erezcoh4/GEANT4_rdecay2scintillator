@@ -77,10 +77,18 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         fParticleGun->SetParticleDefinition(ion);
         fParticleGun->SetParticleCharge(ionCharge);
     }
-    G4cout << "generating primaries at PrimaryGeneratorAction::GeneratePrimaries()" << G4endl;
-    //create vertex    
+    // standard particle
+    //    G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+    //    G4ParticleDefinition* particle
+    //    = particleTable->FindParticle("e+");
+    //    fParticleGun->SetParticleDefinition(particle);
+    //    fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
+    //    fParticleGun->SetParticleEnergy(1.*keV);
+
+    std::cout << "generating primaries at PrimaryGeneratorAction::GeneratePrimaries()" << std::endl;
+    //create vertex
     fParticleGun->GeneratePrimaryVertex(anEvent);
-    G4cout << "done PrimaryGeneratorAction::GeneratePrimaries()" << G4endl;
+    std::cout << "done PrimaryGeneratorAction::GeneratePrimaries()" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

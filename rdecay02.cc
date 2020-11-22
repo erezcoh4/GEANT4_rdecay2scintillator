@@ -40,6 +40,7 @@
 #endif
 
 #include "G4UImanager.hh"
+#include "QBBC.hh"
 #include "Randomize.hh"
 
 #include "DetectorConstruction.hh"
@@ -53,58 +54,75 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc,char** argv) {
-
-  //detect interactive mode (if no arguments) and define UI session
-  G4UIExecutive* ui = 0;
-  if (argc == 1) ui = new G4UIExecutive(argc,argv);
-
-  //choose the Random engine
-  G4Random::setTheEngine(new CLHEP::RanecuEngine);
-
-  // Construct the default run manager
+    
+    //detect interactive mode (if no arguments) and define UI session
+    G4UIExecutive* ui = 0;
+    if (argc == 1) ui = new G4UIExecutive(argc,argv);
+    
+    //choose the Random engine
+    G4Random::setTheEngine(new CLHEP::RanecuEngine);
+    
+    // Construct the default run manager
 #ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
-  G4int nThreads = G4Threading::G4GetNumberOfCores();
-  if (argc==3) nThreads = G4UIcommand::ConvertToInt(argv[2]);
-  runManager->SetNumberOfThreads(nThreads);
+    G4MTRunManager* runManager = new G4MTRunManager;
+    G4int nThreads = G4Threading::G4GetNumberOfCores();
+    if (argc==3) nThreads = G4UIcommand::ConvertToInt(argv[2]);
+    runManager->SetNumberOfThreads(nThreads);
 #else
-  //my Verbose output class
-  G4VSteppingVerbose::SetInstance(new SteppingVerbose);
-  G4RunManager* runManager = new G4RunManager;
+    //my Verbose output class
+    G4VSteppingVerbose::SetInstance(new SteppingVerbose);
+    G4RunManager* runManager = new G4RunManager;
 #endif
-
-  //set mandatory initialization classes
-  DetectorConstruction* det= new DetectorConstruction;
-  runManager->SetUserInitialization(det);
-
-  PhysicsList* phys = new PhysicsList;
-  runManager->SetUserInitialization(phys);
-
-  runManager->SetUserInitialization(new ActionInitialization(det));
-
-  //initialize visualization
-  G4VisManager* visManager = nullptr;
-
-  // get the pointer to the User Interface manager
-  G4UImanager* UImanager = G4UImanager::GetUIpointer();
-
-  if (ui)  {
-   //interactive mode
-   visManager = new G4VisExecutive;
-   visManager->Initialize();
-   ui->SessionStart();
-   delete ui;
-  }
-  else  {
-   //batch mode
-   G4String command = "/control/execute ";
-   G4String fileName = argv[1];
-   UImanager->ApplyCommand(command+fileName);
-  }
-
-  //job termination
-  delete visManager;
-  delete runManager;
+    
+    //set mandatory initialization classes
+    DetectorConstruction* det= new DetectorConstruction;
+    runManager->SetUserInitialization(det);
+    
+    //        // from example B1
+    G4VModularPhysicsList* physicsList = new QBBC;
+    physicsList->SetVerboseLevel(1);
+    runManager->SetUserInitialization(physicsList);
+    
+    // from rdecay01
+    //    runManager->SetUserInitialization(new PhysicsList);
+    //    // original
+    PhysicsList* phys = new PhysicsList;
+    runManager->SetUserInitialization(phys);
+    
+    runManager->SetUserInitialization(new ActionInitialization(det));
+    
+    //initialize visualization
+    //  G4VisManager* visManager = nullptr;
+    G4VisManager* visManager = new G4VisExecutive;
+    // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
+    // G4VisManager* visManager = new G4VisExecutive("Quiet");
+    visManager->Initialize();
+    
+    // get the pointer to the User Interface manager
+    G4UImanager* UImanager = G4UImanager::GetUIpointer();
+    
+    if (ui)  {
+        //   //interactive mode
+        //   visManager = new G4VisExecutive;
+        //   visManager->Initialize();
+        // interactive mode
+        std::cout << "UImanager->ApplyCommand(/control/execute erez_vis.mac);" << std::endl;
+        UImanager->ApplyCommand("/control/execute erez_vis.mac");
+        std::cout << "ui->SessionStart();" << std::endl;
+        ui->SessionStart();
+        std::cout << "delete ui;" << std::endl;
+        delete ui;
+    }
+    else  {
+        //batch mode
+        G4String command = "/control/execute ";
+        G4String fileName = argv[1];
+        UImanager->ApplyCommand(command+fileName);
+    }
+    
+    //job termination
+    delete visManager;
+    delete runManager;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -36,6 +36,10 @@
 
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
+#include "G4Colour.hh"
+#include "G4VisAttributes.hh"
+#include "G4Box.hh"
+#include "G4Sphere.hh"
 
 class G4LogicalVolume;
 class G4Material;
@@ -77,11 +81,15 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4LogicalVolume* GetLogicDetector();      
          
     
+
     
     G4LogicalVolume * logicScint_1;
     G4LogicalVolume * GetLogicScint_1(){ return logicScint_1; };
     G4LogicalVolume * logicScint_2;
     G4LogicalVolume * GetLogicScint_2(){ return logicScint_2; };
+    
+    
+    
     
     
   private:
@@ -105,6 +113,27 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     
     G4Material*         fPlasticMater;
 
+    
+    
+    G4ThreeVector posSourceHolder;
+    G4ThreeVector positionScint_1, positionScint_2;
+    
+    G4Box * solidSourceHolder;
+    G4Sphere * sourcePlaceHolder;
+    G4Box * solidScint_1, * solidScint_2;
+    
+    G4LogicalVolume * logicSourceHolder;
+    G4LogicalVolume * logicSourcePlaceHolder;
+    
+    G4Colour SourceHolderColor;
+    G4Colour SourceRed;
+    G4Colour ScintBlue;
+    
+    G4VisAttributes* SourceHolderVisAttributes;
+    G4VisAttributes* sourceVisAttributes;
+    G4VisAttributes* ScintVisAttributes;
+
+    
   private:
     
     void               DefineMaterials();

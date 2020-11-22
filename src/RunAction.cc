@@ -51,7 +51,7 @@ RunAction::RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim)
 fDetector(det), fPrimary(prim), fRun(0), fHistoManager(0)
 {
     // Book predefined histograms
-    fHistoManager = new HistoManager(); 
+    fHistoManager = new HistoManager();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -65,33 +65,33 @@ RunAction::~RunAction()
 
 G4Run* RunAction::GenerateRun()
 { 
-    fRun = new Run(fDetector); 
+    fRun = new Run(fDetector);
     return fRun;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void RunAction::BeginOfRunAction(const G4Run*)
-{    
+{
+    std::cout << "RunAction::BeginOfRunAction(const G4Run*)" << std::endl;
     // save Rndm status
     G4RunManager::GetRunManager()->SetRandomNumberStore(false);
     if (isMaster) G4Random::showEngineStatus();
     
     // keep run condition
-    if (fPrimary) { 
-        G4ParticleDefinition* particle 
+    if (fPrimary) {
+        G4ParticleDefinition* particle
         = fPrimary->GetParticleGun()->GetParticleDefinition();
         G4double energy = fPrimary->GetParticleGun()->GetParticleEnergy();
         fRun->SetPrimary(particle, energy);
     }
     
-    //histograms
-    //
-    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-    if ( analysisManager->IsActive() ) {
-        analysisManager->OpenFile();
-    }
-    
+    //    //histograms
+    //    //
+    //    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    //    if ( analysisManager->IsActive() ) {
+    //        analysisManager->OpenFile();
+    //    }
     
     // output csv file
     // copy from EventAction::EndOfEventAction(const G4Event*evt)
@@ -101,25 +101,29 @@ void RunAction::BeginOfRunAction(const G4Run*)
     << "NtrajCont"          << ","
     << "Etot"
     << std::endl;
-    // 
+    //
     csvfile.close();
+    
+    std::cout << "done RunAction::BeginOfRunAction(const G4Run*)" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void RunAction::EndOfRunAction(const G4Run*)
 {
-    if (isMaster) fRun->EndOfRun();    
+    std::cout << "RunAction::EndOfRunAction(const G4Run*)" << std::endl;
+    if (isMaster) fRun->EndOfRun();
     
-    //save histograms      
-    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-    if ( analysisManager->IsActive() ) {
-        analysisManager->Write();
-        analysisManager->CloseFile();
-    }
+    //    //save histograms
+    //    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    //    if ( analysisManager->IsActive() ) {
+    //        analysisManager->Write();
+    //        analysisManager->CloseFile();
+    //    }
     
     // show Rndm status
-    if (isMaster) G4Random::showEngineStatus();    
+    if (isMaster) G4Random::showEngineStatus();
+    std::cout << "done RunAction::EndOfRunAction(const G4Run*)" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

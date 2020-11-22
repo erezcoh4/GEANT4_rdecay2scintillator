@@ -64,14 +64,16 @@ fDetectorMater(0), fLogicDetector(0),
 fWorldMater(0), fPhysiWorld(0),
 fDetectorMessenger(0)
 {
-    fTargetLength      = 1*cm;
-    fTargetRadius      = 0.5*cm;
-    fDetectorLength    = 5*cm;
-    fDetectorThickness = 2*cm;
+    //    fTargetLength      = 1*cm;
+    //    fTargetRadius      = 0.5*cm;
+    //    fDetectorLength    = 5*cm;
+    //    fDetectorThickness = 2*cm;
+    //
+    //    fWorldLength = std::max(fTargetLength,fDetectorLength);
+    // fWorldRadius = fTargetRadius + fDetectorThickness;
     
-    fWorldLength = std::max(fTargetLength,fDetectorLength);
-    fWorldRadius = fTargetRadius + fDetectorThickness;
-    
+    fWorldLength = 10.*cm;
+    fWorldRadius = 10.*cm;
     DefineMaterials();
     
     fDetectorMessenger = new DetectorMessenger(this);
@@ -111,8 +113,9 @@ void DetectorConstruction::DefineMaterials()
     // or use G4 materials data base
     //
     G4NistManager* man = G4NistManager::Instance();
-    fTargetMater = man->FindOrBuildMaterial("G4_CESIUM_IODIDE");
-    fDetectorMater = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    //    fTargetMater = man->FindOrBuildMaterial("G4_CESIUM_IODIDE");
+    //    fDetectorMater = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    fDetectorMater = man->FindOrBuildMaterial("G4_CESIUM_IODIDE");
     fPlasticMater = man->FindOrBuildMaterial("G4_POLYETHYLENE");
     
     ///G4cout << *(G4Material::GetMaterialTable()) << G4endl;
@@ -121,6 +124,9 @@ void DetectorConstruction::DefineMaterials()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
 {
+    G4bool DoSourceHolder = true;
+    G4bool DoSourcePlaceHolder = true;
+    
     // Cleanup old geometry
     G4GeometryManager::GetInstance()->OpenGeometry();
     G4PhysicalVolumeStore::GetInstance()->Clean();
@@ -128,17 +134,17 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
     G4SolidStore::GetInstance()->Clean();
     
     // World
-    //
     // (re) compute World dimensions if necessary
-    fWorldLength = std::max(fTargetLength,fDetectorLength);
-    fWorldRadius = fTargetRadius + fDetectorThickness;
-    
-    G4Tubs*
-    sWorld = new G4Tubs("World",                                 //name
-                        0.,fWorldRadius, 0.5*fWorldLength, 0.,twopi); //dimensions
+    G4double Scint_dx = 3.*mm;
+    G4double Scint_dy = 3.*mm;
+    G4double Scint_dz = 5.*mm;
+
+    fWorldLength =  10*std::max(Scint_dx,std::max(Scint_dy,Scint_dz));
+    G4Box * sWorld = new G4Box("World",                                 //name
+                               0.5*fWorldLength, 0.5*fWorldLength, 0.5*fWorldLength); //dimensions
     
     G4LogicalVolume*
-    lWorld = new G4LogicalVolume(sWorld,                  //shape
+    lWorld = new G4LogicalVolume(sWorld,                    //shape
                                  fWorldMater,               //material
                                  "World");                  //name
     
@@ -149,68 +155,68 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
                                     0,                          //mother volume
                                     false,                      //no boolean operation
                                     0);                         //copy number
-        
     
     
     
-
+    
+    
     // (plastic) source holder
-    G4ThreeVector posSourceHolder = G4ThreeVector(0 , 0 ,0 );
-    G4Box * solidSourceHolder = new G4Box("solidSourceHolder",
-                                                1.*cm/2., 2.*cm/2. ,0.5*mm/2.);
-    G4LogicalVolume * logicSourceHolder = new G4LogicalVolume(solidSourceHolder,
-                                                              fPlasticMater ,
-                                                                   "logicSourceHolder",
-                                                                   0,0,0);
-    G4Colour SourceHolderColor(0.8, 0.6, 0.7);
-    G4VisAttributes* SourceHolderVisAttributes = new G4VisAttributes(SourceHolderColor);
-    logicSourceHolder->SetVisAttributes(SourceHolderVisAttributes);
-    new G4PVPlacement(0,                                  // no rotation
-                      G4ThreeVector(0,0,0),               // at (x,y,z)
-                      logicSourceHolder,             // its logical volume
-                      "placementSourceHolder",       // its name
-                      lWorld,                             // its mother  volume
-                      false,                              // no boolean operations
-                      0);                                 // copy number
-    // <--- end source holder
-    
-    
-    // place-holder for the source position
-    G4Sphere * sourcePlaceHolder = new G4Sphere("sourcePlaceHolder",
-                                                0, 0.1 * mm,
-                                                0.*deg,360.*deg,0.*deg,180.*deg);
-    G4LogicalVolume * logicSourcePlaceHolder = new G4LogicalVolume(sourcePlaceHolder,
-                                                                   fWorldMater ,
-                                                                   "logicSourcePlaceHolder",
-                                                                   0,0,0);
-    G4Colour SourceRed(1.0, 0.1, 0.2);
-    G4VisAttributes* sourceVisAttributes = new G4VisAttributes(SourceRed);
-    logicSourcePlaceHolder->SetVisAttributes(sourceVisAttributes);
-    new G4PVPlacement(0,                                  // no rotation
-                      G4ThreeVector(0,0,0),               // at (x,y,z)
-                      logicSourcePlaceHolder,             // its logical volume
-                      "placementSourcePlaceHolder",       // its name
-                      logicSourceHolder,                  // its mother  volume
-                      false,                              // no boolean operations
-                      0);                                 // copy number
-    // <--- end place-holder for the source position
+    if (DoSourceHolder) {
+        posSourceHolder = G4ThreeVector(0 , 0 ,0 );
+        solidSourceHolder = new G4Box("solidSourceHolder",
+                                              1.*cm/2., 2.*cm/2. ,0.5*mm/2.);
+        logicSourceHolder = new G4LogicalVolume(solidSourceHolder,
+                                                                  fPlasticMater ,
+                                                                  "logicSourceHolder",
+                                                                  0,0,0);
+        SourceHolderColor = G4Colour(0.8, 0.6, 0.7);
+        SourceHolderVisAttributes = new G4VisAttributes(SourceHolderColor);
+        logicSourceHolder->SetVisAttributes(SourceHolderVisAttributes);
+        new G4PVPlacement(0,                                  // no rotation
+                          G4ThreeVector(0,0,0),               // at (x,y,z)
+                          logicSourceHolder,             // its logical volume
+                          "placementSourceHolder",       // its name
+                          lWorld,                             // its mother  volume
+                          false,                              // no boolean operations
+                          0);                                 // copy number
+        // <--- end source holder
+    }
 
+
+    // place-holder for the source position
+    if (DoSourcePlaceHolder) {
+        sourcePlaceHolder = new G4Sphere("sourcePlaceHolder",
+                                                    0, 0.1 * mm,
+                                                    0.*deg,360.*deg,0.*deg,180.*deg);
+        logicSourcePlaceHolder = new G4LogicalVolume(sourcePlaceHolder,
+                                                                       fWorldMater ,
+                                                                       "logicSourcePlaceHolder",
+                                                                       0,0,0);
+        SourceRed = G4Colour(1.0, 0.1, 0.2);
+        sourceVisAttributes = new G4VisAttributes(SourceRed);
+        logicSourcePlaceHolder->SetVisAttributes(sourceVisAttributes);
+        new G4PVPlacement(0,                                  // no rotation
+                          G4ThreeVector(0,0,0),               // at (x,y,z)
+                          logicSourcePlaceHolder,             // its logical volume
+                          "placementSourcePlaceHolder",       // its name
+                          logicSourceHolder,                  // its mother  volume
+                          false,                              // no boolean operations
+                          0);                                 // copy number
+        // <--- end place-holder for the source position
+    }
     
+
     // Plastic scintillators from two sides of the source
     //
-    // CONTINUE HERE: DOUBLE THIS>>>>
-    G4double Scint_dx = 3.*mm;
-    G4double Scint_dy = 3.*mm;
-    G4double Scint_dz = 5.*mm;
-    G4Colour ScintBlue(0.1, 0.2, 1.0);
-    G4VisAttributes* ScintVisAttributes = new G4VisAttributes(ScintBlue);
+    ScintBlue = G4Colour(0.1, 0.2, 1.0);
+    ScintVisAttributes = new G4VisAttributes(ScintBlue);
     
-    G4ThreeVector positionScint_1 = G4ThreeVector(0 , 0 ,0.2*mm + Scint_dz/2. );
-    G4Box * solidScint_1 = new G4Box("solidScint_1", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
+    positionScint_1 = G4ThreeVector(0 , 0 ,0.2*mm + Scint_dz/2. );
+    solidScint_1 = new G4Box("solidScint_1", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
     logicScint_1 = new G4LogicalVolume(solidScint_1,
-                                                              fDetectorMater ,
-                                                              "logicScint_1",
-                                                              0,0,0);
+                                       fDetectorMater ,
+                                       "logicScint_1",
+                                       0,0,0);
     
     logicScint_1->SetVisAttributes(ScintVisAttributes);
     new G4PVPlacement(0,              // no rotation
@@ -221,11 +227,11 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
                       false,           // no boolean operations
                       0);              // copy number
     G4ThreeVector positionScint_2 = G4ThreeVector(0 , 0 ,-0.2*mm - Scint_dz/2. );
-    G4Box * solidScint_2 = new G4Box("solidScint_2", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
+    solidScint_2 = new G4Box("solidScint_2", Scint_dx/2., Scint_dy/2., Scint_dz/2.);
     logicScint_2 = new G4LogicalVolume(solidScint_2,
-                                                              fDetectorMater ,
-                                                              "logicScint_2",
-                                                              0,0,0);
+                                       fDetectorMater ,
+                                       "logicScint_2",
+                                       0,0,0);
     
     logicScint_2->SetVisAttributes(ScintVisAttributes);
     new G4PVPlacement(0,              // no rotation
@@ -236,7 +242,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
                       false,           // no boolean operations
                       0);
     // <--- end plastic scintillator
-
+    
     
     
     
@@ -250,13 +256,13 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
 
 void DetectorConstruction::PrintParameters()
 {
-//    G4cout << "\n Target : Length = " << G4BestUnit(fTargetLength,"Length")
-//    << " Radius = " << G4BestUnit(fTargetRadius,"Length")
-//    << " Material = " << fTargetMater->GetName();
-//    G4cout << "\n Detector : Length = " << G4BestUnit(fDetectorLength,"Length")
-//    << " Tickness = " << G4BestUnit(fDetectorThickness,"Length")
-//    << " Material = " << fDetectorMater->GetName() << G4endl;
-//    G4cout << "\n" << fTargetMater << "\n" << fDetectorMater << G4endl;
+    //    G4cout << "\n Target : Length = " << G4BestUnit(fTargetLength,"Length")
+    //    << " Radius = " << G4BestUnit(fTargetRadius,"Length")
+    //    << " Material = " << fTargetMater->GetName();
+    //    G4cout << "\n Detector : Length = " << G4BestUnit(fDetectorLength,"Length")
+    //    << " Tickness = " << G4BestUnit(fDetectorThickness,"Length")
+    //    << " Material = " << fDetectorMater->GetName() << G4endl;
+    //    G4cout << "\n" << fTargetMater << "\n" << fDetectorMater << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
