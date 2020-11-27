@@ -33,9 +33,10 @@
 
 #ifndef EventAction_h
 #define EventAction_h 1
-
+#define NMAXtracks 1000
 #include "G4UserEventAction.hh"
 #include "globals.hh"
+#include "G4ThreeVector.hh"
 #include <fstream>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -50,15 +51,39 @@ class EventAction : public G4UserEventAction
     virtual void BeginOfEventAction(const G4Event*);
     virtual void   EndOfEventAction(const G4Event*);
     
-    void AddEdep (G4int iVol, G4double Edep, G4double time, G4double weight);
+    void AddEdep (G4int iVol,
+                  G4double edep,
+                  G4double time,
+                  G4int trackId,
+                  int fdebug = 0);
            
+    
+    void SetFirstPointInVolume( G4int iVol, G4int trackId, G4ThreeVector pos, G4double time ){
+        FirstPointInVolume[iVol][trackId] = pos;
+        FirstPointInVolumeTime[iVol][trackId] = time;
+    };
+    void SetLastPointInVolume( G4int iVol, G4int trackId, G4ThreeVector pos, G4double time ){
+        LastPointInVolume[iVol][trackId] = pos;
+        LastPointInVolumeTime[iVol][trackId] = time;
+    };
     
     std::ofstream csvfile;
     
   private:
     G4double fEdep1,   fEdep2;
     G4double fWeight1, fWeight2;
-    G4double fTime0;    
+    G4double fTime0;
+    
+    // fEdep is a 2-D array
+    // first dimension is volume number (0 for world, 1 for scintllator 1, 2 for scintillator 2)
+    // second dimension is track Id
+    G4double fEdep[3][NMAXtracks];
+    
+    // first and last point of each track in each volume
+    G4ThreeVector FirstPointInVolume[3][NMAXtracks];
+    G4ThreeVector LastPointInVolume[3][NMAXtracks];
+    G4double FirstPointInVolumeTime[3][NMAXtracks];
+    G4double LastPointInVolumeTime[3][NMAXtracks];
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -97,11 +97,34 @@ void RunAction::BeginOfRunAction(const G4Run*)
     // output csv file
     // copy from EventAction::EndOfEventAction(const G4Event*evt)
     csvfile.open("particles.csv", std::ios_base::out);
+    
     csvfile
-    << "eventId"            << ","
-    << "NtrajCont"          << ","
-    << "Etot"
-    << std::endl;
+    << "eventId"          << ","
+    << "NtrajCont"        << ","
+    << "trackId"          << ","
+    << "parentId"         << ","
+    << "PDGcode"          << ","
+    << "ParticleName"     << ","
+    << "pInit.x()/MeV"         << ","
+    << "pInit.y()/MeV"         << ","
+    << "pInit.z()/MeV"         << ","
+    << "pInit.mag()/MeV"       << ",";
+    
+    // track hit-position and energy deposition in scintillators
+    for (int iVol=0; iVol<3; iVol++){
+        csvfile
+        << "fEdep["<<iVol<<"]/MeV" << ","
+        << "FirstPointInVolume["<<iVol<<"].x()/mm" << ","
+        << "FirstPointInVolume["<<iVol<<"].y()/mm" << ","
+        << "FirstPointInVolume["<<iVol<<"].z()/mm" << ","
+        << "LastPointInVolume["<<iVol<<"].x()/mm" << ","
+        << "LastPointInVolume["<<iVol<<"].y()/mm" << ","
+        << "LastPointInVolume["<<iVol<<"].z()/mm" << ",";
+    }
+    
+    // end line
+    csvfile << std::endl;
+    
     //
     csvfile.close();
     

@@ -71,7 +71,7 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     G4int iVol = 0;
     if (lVolume == fDetector->GetLogicScint_1()) iVol = 1;
     if (lVolume == fDetector->GetLogicScint_2()) iVol = 2;
-
+    
     if (fdebug>1) std::cout << "//count processes" << std::endl;
     // count processes
     //
@@ -79,16 +79,16 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     const G4StepPoint* endPoint = aStep->GetPostStepPoint();
     
     if (fdebug>1) std::cout << "startPoint: "      << "("
-    << endPoint->GetPosition().x() << ","
-    << endPoint->GetPosition().y() << ","
-    << endPoint->GetPosition().z() << ")"
-    << std::endl;
+        << endPoint->GetPosition().x() << ","
+        << endPoint->GetPosition().y() << ","
+        << endPoint->GetPosition().z() << ")"
+        << std::endl;
     
     if (fdebug>1) std::cout << "endPoint: "      << "("
-    << endPoint->GetPosition().x() << ","
-    << endPoint->GetPosition().y() << ","
-    << endPoint->GetPosition().z() << ")"
-    << std::endl;
+        << endPoint->GetPosition().x() << ","
+        << endPoint->GetPosition().y() << ","
+        << endPoint->GetPosition().z() << ")"
+        << std::endl;
     
     G4double stepLength = aStep -> GetStepLength();
     if (fdebug>1) std::cout << "stepLength: " << stepLength / CLHEP::nm << "nm" << std::endl;
@@ -100,21 +100,21 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     
     if (fdebug>1) std::cout << "//energy deposit" << std::endl;
     // energy deposit
-    //
-    G4double edepStep = aStep->GetTotalEnergyDeposit();
-    if (edepStep <= 0.) return;
-    G4double time   = aStep->GetPreStepPoint()->GetGlobalTime();
-    G4double weight = aStep->GetPreStepPoint()->GetWeight();
-    fEventAction->AddEdep(iVol, edepStep, time, weight);
+    //    //
+    //    G4double edepStep = aStep->GetTotalEnergyDeposit();
+    //    if (edepStep <= 0.) return;
+    //    G4double time   = aStep->GetPreStepPoint()->GetGlobalTime();
+    //    G4double weight = aStep->GetPreStepPoint()->GetWeight();
+    //    fEventAction->AddEdep(iVol, edepStep, time, weight);
     
-    if (fdebug>1) std::cout << "//fill ntuple id = 2" << std::endl;
-    //fill ntuple id = 2
-    G4int id = 2;
-    analysisManager->FillNtupleDColumn(id,0, edepStep);
-    analysisManager->FillNtupleDColumn(id,1, time/s);
-    analysisManager->FillNtupleDColumn(id,2, weight);
-    analysisManager->AddNtupleRow(id);
-    if (fdebug>1) std::cout << "done SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
+    //    if (fdebug>1) std::cout << "//fill ntuple id = 2" << std::endl;
+    //    //fill ntuple id = 2
+    //    G4int id = 2;
+    //    analysisManager->FillNtupleDColumn(id,0, edepStep);
+    //    analysisManager->FillNtupleDColumn(id,1, time/s);
+    //    analysisManager->FillNtupleDColumn(id,2, weight);
+    //    analysisManager->AddNtupleRow(id);
+    //    if (fdebug>1) std::cout << "done SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
     
     // continue here:
     // stream step energy deposit into output csv:
@@ -123,6 +123,34 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     //
     // event, detector, particle type, track id, parent id, Edep, weight, time, process name, start x,y,z, end x,y,z
     
+    G4double edepStep = aStep->GetTotalEnergyDeposit();
+    G4double time = aStep->GetPreStepPoint()->GetGlobalTime();
+    G4double trackId = aStep->GetTrack()->GetTrackID();
+    G4bool   isFirstStepInVolume = aStep->IsFirstStepInVolume ();
+    G4bool   isLastStepInVolume = aStep->IsLastStepInVolume ();
+    
+    if (fdebug>1){
+        std::cout
+        << "iVol: " << iVol << ", "
+        << "track id: "<< aStep->GetTrack()->GetTrackID() << ", "
+        << "particle: "<< aStep->GetTrack()->GetParticleDefinition ()->GetParticleName() << ", "
+        << "delta energy: "<< aStep->GetDeltaEnergy ()/MeV << " MeV, "
+        << "step length: " << aStep->GetStepLength ()/um << "um, "
+        << "IsFirstStepInVolume?: "<< aStep->IsFirstStepInVolume () << ", "
+        << "IsLastStepInVolume?: " << aStep->IsLastStepInVolume () << ", "
+        << std::endl;
+    }
+    // plug this information into a dedicated buffer at the "event-action"
+    fEventAction -> AddEdep( iVol, edepStep, time, trackId);
+    
+    // check if its the first or last point in each volume,
+    // and if so, stream them into the event-action buffer
+    if (isFirstStepInVolume){
+        fEventAction -> SetFirstPointInVolume( iVol, trackId, aStep->GetPreStepPoint()->GetPosition() , time );
+    }
+    if (isLastStepInVolume){
+        fEventAction -> SetFirstPointInVolume( iVol, trackId, aStep->GetPostStepPoint()->GetPosition() , time );
+    }
     
 }
 

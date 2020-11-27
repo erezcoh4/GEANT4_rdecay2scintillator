@@ -47,10 +47,26 @@ EventAction::EventAction()
 :G4UserEventAction(),
 fEdep1(0.), fEdep2(0.), fWeight1(0.), fWeight2(0.),
 fTime0(-1*s)
-{ } 
+{
+    // initialize fEdep
+    // fEdep is a 2-D array
+    // first dimension is volume number (0 for world, 1 for scintllator 1, 2 for scintillator 2)
+    // second dimension is track Id
+    
+    for (int iVol=0; iVol<3; iVol++){
+        for (int trackId=0; trackId<NMAXtracks; trackId++){
+            fEdep[iVol][trackId] = 0;
+            FirstPointInVolume[iVol][trackId] = G4ThreeVector(-999,-999,-999);
+            LastPointInVolume[iVol][trackId] = G4ThreeVector(-999,-999,-999);
+            FirstPointInVolumeTime[iVol][trackId] = -999;
+            LastPointInVolumeTime[iVol][trackId] = -999;
+        }
+    }
+    
+    
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 EventAction::~EventAction()
 { }
 
@@ -65,24 +81,6 @@ void EventAction::BeginOfEventAction(const G4Event*)
     if (fdebug>1) std::cout << "done EventAction::BeginOfEventAction(const G4Event*)" << std::endl;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void EventAction::AddEdep(G4int iVol, G4double edep,
-                          G4double time, G4double weight)
-{
-    int fdebug = 0;
-    if (fdebug>1) std::cout << "EventAction::AddEdep()" << std::endl;
-    // initialize t0
-    if (fTime0 < 0.) fTime0 = time;
-    
-    // out of time window ?
-    const G4double TimeWindow (1*microsecond);
-    if (std::fabs(time - fTime0) > TimeWindow) return;
-    
-    if (iVol == 1) { fEdep1 += edep; fWeight1 += edep*weight;}
-    if (iVol == 2) { fEdep2 += edep; fWeight2 += edep*weight;}
-    if (fdebug>1) std::cout << "done EventAction::AddEdep()" << std::endl;
-}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -120,6 +118,29 @@ void EventAction::EndOfEventAction(const G4Event*evt)
     run->AddEdep (fEdep1, fEdep2);
     
     
+    // --------------------------------
+    // write a csv file for each particle that was emitted from the source:
+    //
+    // event ID
+    // partice type (PDG code)
+    // track ID
+    // parent ID
+    // initial momentum [MeV/c]
+    // final momentum [MeV/c]
+    //
+    // hit time scintillator 1 [ps] (-999 if did not hit scintillator)
+    // start point in scintillator 1 [cm] ((-999,-999,-999) if did not hit scintillator)
+    // end point in scintillator 1 [cm] ((-999,-999,-999) if did not hit scintillator)
+    // energy deposition in scintilaltor 1 [MeV] (0 if did not hit scintillator)
+    // underwent compton in scintillator 1 ?
+    //
+    // hit time scintillator 2 [ps] (-999 if did not hit scintillator)
+    // start point in scintillator 2 [cm] ((-999,-999,-999) if did not hit scintillator)
+    // end point in scintillator 2 [cm] ((-999,-999,-999) if did not hit scintillator)
+    // energy deposition in scintilaltor 2 [MeV] (0 if did not hit scintillator)
+    // underwent compton in scintillator 2 ?
+    //
+    
     if (fdebug>0) std::cout << "event " << evt -> GetEventID() << ",opening output csv and write data" << std::endl;
     // open output csv and write data
     csvfile.open("particles.csv", std::ios_base::app);
@@ -129,72 +150,101 @@ void EventAction::EndOfEventAction(const G4Event*evt)
     // trajectory container
     G4TrajectoryContainer * trajCont = evt -> GetTrajectoryContainer();
     size_t trajCont_size = trajCont->size();
-
+    
     if (fdebug>1) std::cout << "trajCont_size: " << trajCont_size << std::endl;
     G4int NtrajCont = trajCont -> entries();
     if (fdebug>1) std::cout << "NtrajCont: " << NtrajCont << std::endl;
-
+    
     std::vector< G4VTrajectory * > * trajectories = trajCont -> GetVector ();
+    
+    //    // hits collection
+    //    if (fdebug>1) std::cout <<  "hits collection: " << std::endl;
+    
+    //    if (fdebug>1) std::cout << "G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent() for event " << eventId << std::endl;
+    //    G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent();
+    //    G4int NhitCols = sizeof(hitsCol)/sizeof(hitsCol[0]);
+    
     for (auto traj:*trajectories){
-
+        
         G4String ParticleName = traj->GetParticleName() ;
         G4int PDGcode = traj->GetPDGEncoding();
-        G4int trackID = traj->GetTrackID ();
-        G4int parentID = traj->GetParentID ();
+        G4int trackId = traj->GetTrackID ();
+        G4int parentId = traj->GetParentID ();
         G4ThreeVector pInit = traj->GetInitialMomentum ();
-
+        
+        //  trajectory points can not help, as they do not provide access for the energy deposition etc.
         // for each particle, we dedicate a line in the csv file
         csvfile
         << eventId          << ","
         << NtrajCont        << ","
-        << trackID          << ","
-        << parentID         << ","
+        << trackId          << ","
+        << parentId         << ","
         << PDGcode          << ","
         << ParticleName     << ","
-        << pInit.x()        << ","
-        << pInit.y()        << ","
-        << pInit.z()        << ","
-        << pInit.mag()      << ","
-        << Etot
-        << std::endl;
+        << pInit.x()/MeV         << ","
+        << pInit.y()/MeV         << ","
+        << pInit.z()/MeV         << ","
+        << pInit.mag()/MeV       << ",";
         
-    }
-    
-    // hits collection
-    if (fdebug>1) std::cout <<  "hits collection: " << std::endl;
-    
-    if (fdebug>1) std::cout << "G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent() for event " << eventId << std::endl;
-    G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent();
-    G4int NhitCols = sizeof(hitsCol)/sizeof(hitsCol[0]);
-    
-    
-    if (fdebug>1) std::cout << "we have " << NhitCols << " hit collections in event " << eventId << std::endl;
-    if (NhitCols>=1){
-        for (G4int hitColIdx=0; hitColIdx<NhitCols; hitColIdx++){
-            G4VHitsCollection * HC = hitsCol -> GetHC (hitColIdx);
-            G4int NHC = sizeof(HC)/sizeof(HC[0]);
-            std::cout << NHC << " hits in hit collection " << hitColIdx << std::endl;
-            
-            if (NHC>0){
-                G4String SDname = HC -> GetSDname ();
-                size_t HCsize = HC -> GetSize ();
-                if (fdebug>1) std::cout << "hit collection in " << SDname << " of size " << HCsize << std::endl;
-                HC -> PrintAllHits ();
-//                for (size_t hitIdx=0; hitIdx<HCsize; hitIdx++){
-//                    G4VHit * hit = HC -> GetHit(hitIdx);
-//                    hit -> Print();
-//                }
-                
-                
-            }
-            
+        // track hit-position and energy deposition in scintillators
+        for (int iVol=0; iVol<3; iVol++){
+            csvfile
+            << fEdep[iVol][trackId]/MeV << ","
+            << FirstPointInVolume[iVol][trackId].x()/mm << ","
+            << FirstPointInVolume[iVol][trackId].y()/mm << ","
+            << FirstPointInVolume[iVol][trackId].z()/mm << ","
+            << LastPointInVolume[iVol][trackId].x()/mm << ","
+            << LastPointInVolume[iVol][trackId].y()/mm << ","
+            << LastPointInVolume[iVol][trackId].z()/mm << ",";
         }
         
-        // close file
-        csvfile.close();
-        if (fdebug>1) std::cout << "closed file at event " << evt -> GetEventID() << std::endl;
+        // end line
+        csvfile << std::endl;
+        
     }
+    csvfile.close();
+    
+    
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+// AddEdep modified by Erez, Nov-25, 2020
+void EventAction::AddEdep(G4int iVol,
+                          G4double edep,
+                          G4double time,
+                          G4int trackId,
+                          int fdebug ){
+    
+    if (fdebug>1) std::cout << "EventAction::AddEdep()" << std::endl;
+    
+    // omit tracks of id > NMAXtracks
+    if (trackId >= NMAXtracks){
+        std::cout
+        << "(trackId = " << trackId << ") >= (NMAXtracks = " << NMAXtracks << ")"
+        <<
+        "returning from EventAction::AddEdep() " << std::endl;
+        return;
+    }
+    
+    // fEdep is a 2-D array
+    // first dimension is volume number (0 for world, 1 for scintllator 1, 2 for scintillator 2)
+    // second dimension is track Id
+    fEdep[iVol][trackId] += edep;
+    
+    
+    if (fdebug>1) std::cout << "done EventAction::AddEdep()" << std::endl;
+    
+    // original
+    //    // initialize t0
+    //    if (fTime0 < 0.) fTime0 = time;
+    //
+    //    // out of time window ?
+    //    const G4double TimeWindow (1*microsecond);
+    //    if (std::fabs(time - fTime0) > TimeWindow) return;
+    //    if (iVol == 1) { fEdep1 += edep; fWeight1 += edep*weight;}
+    //    if (iVol == 2) { fEdep2 += edep; fWeight2 += edep*weight;}
+}
 
 
