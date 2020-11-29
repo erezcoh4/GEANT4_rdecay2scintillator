@@ -84,16 +84,19 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     
     G4LogicalVolume * logicScint_1;
-    G4LogicalVolume * GetLogicScint_1(){ return logicScint_1; };
     G4LogicalVolume * logicScint_2;
-    G4LogicalVolume * GetLogicScint_2(){ return logicScint_2; };
     
+    
+    G4LogicalVolume *       GetLogicScint_1(){ return logicScint_1; };
+    G4LogicalVolume *       GetLogicScint_2(){ return logicScint_2; };
+    G4LogicalVolume *  GetLogicSourceHolder(){ return logicSourceHolder; };
+    G4LogicalVolume *         GetLogicWorld(){ return logicWorld; };
     
     
     
     
   private:
-  
+    G4LogicalVolume*   logicWorld;
     G4double           fTargetLength; 
     G4double           fTargetRadius;
     G4Material*        fTargetMater;

@@ -50,16 +50,22 @@ fTime0(-1*s)
 {
     // initialize fEdep
     // fEdep is a 2-D array
-    // first dimension is volume number (0 for world, 1 for scintllator 1, 2 for scintillator 2)
+    // first dimension is volume number
+    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 4 = world)
     // second dimension is track Id
     
-    for (int iVol=0; iVol<3; iVol++){
-        for (int trackId=0; trackId<NMAXtracks; trackId++){
+    for (int trackId=0; trackId<NMAXtracks; trackId++){
+        ProcessName.push_back("");
+        
+        for (int iVol=0; iVol<4; iVol++){
+        
             fEdep[iVol][trackId] = 0;
             FirstPointInVolume[iVol][trackId] = G4ThreeVector(-999,-999,-999);
             LastPointInVolume[iVol][trackId] = G4ThreeVector(-999,-999,-999);
             FirstPointInVolumeTime[iVol][trackId] = -999;
             LastPointInVolumeTime[iVol][trackId] = -999;
+            FirstPointInVolumeEk[iVol][trackId] = -999;
+            
         }
     }
     
@@ -152,50 +158,57 @@ void EventAction::EndOfEventAction(const G4Event*evt)
     size_t trajCont_size = trajCont->size();
     
     if (fdebug>1) std::cout << "trajCont_size: " << trajCont_size << std::endl;
-    G4int NtrajCont = trajCont -> entries();
-    if (fdebug>1) std::cout << "NtrajCont: " << NtrajCont << std::endl;
-    
     std::vector< G4VTrajectory * > * trajectories = trajCont -> GetVector ();
-    
-    //    // hits collection
-    //    if (fdebug>1) std::cout <<  "hits collection: " << std::endl;
-    
-    //    if (fdebug>1) std::cout << "G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent() for event " << eventId << std::endl;
-    //    G4HCofThisEvent * hitsCol = evt->GetHCofThisEvent();
-    //    G4int NhitCols = sizeof(hitsCol)/sizeof(hitsCol[0]);
-    
+        
     for (auto traj:*trajectories){
         
         G4String ParticleName = traj->GetParticleName() ;
         G4int PDGcode = traj->GetPDGEncoding();
         G4int trackId = traj->GetTrackID ();
         G4int parentId = traj->GetParentID ();
-        G4ThreeVector pInit = traj->GetInitialMomentum ();
+        G4ThreeVector p_init = traj->GetInitialMomentum ();
+        
+        // for data saving, we do not want to write down neutrinos and heavy isotopes that promptly decay
+        if (
+            ParticleName=="nu_e" ||
+            ParticleName=="Na22" ||
+            ParticleName=="Ne22" ||
+            ParticleName=="Ne22[1274.577]"
+            )
+            continue;
         
         //  trajectory points can not help, as they do not provide access for the energy deposition etc.
         // for each particle, we dedicate a line in the csv file
         csvfile
         << eventId          << ","
-        << NtrajCont        << ","
         << trackId          << ","
         << parentId         << ","
-        << PDGcode          << ","
         << ParticleName     << ","
-        << pInit.x()/MeV         << ","
-        << pInit.y()/MeV         << ","
-        << pInit.z()/MeV         << ","
-        << pInit.mag()/MeV       << ",";
+        << p_init.mag()/MeV             << ","
+        << ProcessName.at(trackId)      << ",";
+        
         
         // track hit-position and energy deposition in scintillators
-        for (int iVol=0; iVol<3; iVol++){
+        for (int iVol=0; iVol<4; iVol++){
             csvfile
-            << fEdep[iVol][trackId]/MeV << ","
+            << fEdep[iVol][trackId]/MeV << ",";
+        }
+        csvfile
+        << PDGcode                      << ","
+        << p_init.x()/MeV               << ","
+        << p_init.y()/MeV               << ","
+        << p_init.z()/MeV               << ",";
+
+        for (int iVol=0; iVol<4; iVol++){
+            csvfile
+            << FirstPointInVolumeEk[iVol][trackId]/MeV << ","
+            << FirstPointInVolumeTime[iVol][trackId]/ns << ","
             << FirstPointInVolume[iVol][trackId].x()/mm << ","
             << FirstPointInVolume[iVol][trackId].y()/mm << ","
             << FirstPointInVolume[iVol][trackId].z()/mm << ","
             << LastPointInVolume[iVol][trackId].x()/mm << ","
             << LastPointInVolume[iVol][trackId].y()/mm << ","
-            << LastPointInVolume[iVol][trackId].z()/mm << ",";
+            << LastPointInVolume[iVol][trackId].z()/mm << ",";            
         }
         
         // end line
@@ -229,7 +242,8 @@ void EventAction::AddEdep(G4int iVol,
     }
     
     // fEdep is a 2-D array
-    // first dimension is volume number (0 for world, 1 for scintllator 1, 2 for scintillator 2)
+    // first dimension is volume number
+    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 4 = world)
     // second dimension is track Id
     fEdep[iVol][trackId] += edep;
     

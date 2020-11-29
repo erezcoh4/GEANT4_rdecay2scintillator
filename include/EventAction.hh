@@ -38,7 +38,8 @@
 #include "globals.hh"
 #include "G4ThreeVector.hh"
 #include <fstream>
-
+#include <vector>
+#include <string>
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class EventAction : public G4UserEventAction
@@ -58,9 +59,29 @@ class EventAction : public G4UserEventAction
                   int fdebug = 0);
            
     
-    void SetFirstPointInVolume( G4int iVol, G4int trackId, G4ThreeVector pos, G4double time ){
-        FirstPointInVolume[iVol][trackId] = pos;
-        FirstPointInVolumeTime[iVol][trackId] = time;
+    void SetFirstPointInVolume( G4int iVol, G4int trackId,
+                               G4ThreeVector pos,
+                               G4double time,
+                               G4double Ek,
+                               G4String fProcessName){
+        std::cout
+        << "pos: (" << pos.x() << "," << pos.y() << ","<< pos.z() << ")"
+        << ", time:" << time << ", Ek:" << Ek <<  ", fProcessName:" << fProcessName
+        << std::endl;
+        
+        FirstPointInVolume[iVol][trackId]       = pos;
+        FirstPointInVolumeTime[iVol][trackId]   = time;
+        FirstPointInVolumeEk[iVol][trackId]     = Ek;
+        
+//        const char * pname = fProcessName.data();
+//        std::cout << "ProcessName.data():" << pname << std::endl;
+        ProcessName.at(trackId) = fProcessName;
+//        std::cout << "assigning " << ProcessName << " into " << CreatorProcessName[trackId] << std::endl;
+//        for (int j=0; j<sizeof(pname)/sizeof(pname[0]); j++){
+//            CreatorProcessName[trackId][j] = pname[j];
+//        }
+        std::cout << "done ProcessName" << std::endl;
+        
     };
     void SetLastPointInVolume( G4int iVol, G4int trackId, G4ThreeVector pos, G4double time ){
         LastPointInVolume[iVol][trackId] = pos;
@@ -75,15 +96,18 @@ class EventAction : public G4UserEventAction
     G4double fTime0;
     
     // fEdep is a 2-D array
-    // first dimension is volume number (0 for world, 1 for scintllator 1, 2 for scintillator 2)
+    // first dimension is volume number
+    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 4 = world)
     // second dimension is track Id
-    G4double fEdep[3][NMAXtracks];
+    G4double fEdep[4][NMAXtracks];
     
     // first and last point of each track in each volume
-    G4ThreeVector FirstPointInVolume[3][NMAXtracks];
-    G4ThreeVector LastPointInVolume[3][NMAXtracks];
-    G4double FirstPointInVolumeTime[3][NMAXtracks];
-    G4double LastPointInVolumeTime[3][NMAXtracks];
+    G4ThreeVector FirstPointInVolume[4][NMAXtracks];
+    G4ThreeVector LastPointInVolume[4][NMAXtracks];
+    G4double FirstPointInVolumeTime[4][NMAXtracks];
+    G4double LastPointInVolumeTime[4][NMAXtracks];
+    G4double FirstPointInVolumeEk[4][NMAXtracks];
+    std::vector<G4String> ProcessName;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

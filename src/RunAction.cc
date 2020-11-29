@@ -100,32 +100,40 @@ void RunAction::BeginOfRunAction(const G4Run*)
     
     csvfile
     << "eventId"          << ","
-    << "NtrajCont"        << ","
     << "trackId"          << ","
     << "parentId"         << ","
-    << "PDGcode"          << ","
-    << "ParticleName"     << ","
-    << "pInit.x()/MeV"         << ","
-    << "pInit.y()/MeV"         << ","
-    << "pInit.z()/MeV"         << ","
-    << "pInit.mag()/MeV"       << ",";
-    
+    << "PrtclName"        << ","
+    << "|p_init|/MeV"       << ","
+    << "CreatorProcessName" << ",";
+
     // track hit-position and energy deposition in scintillators
-    for (int iVol=0; iVol<3; iVol++){
+    for (int iVol=0; iVol<4; iVol++){
         csvfile
-        << "fEdep["<<iVol<<"]/MeV" << ","
-        << "FirstPointInVolume["<<iVol<<"].x()/mm" << ","
-        << "FirstPointInVolume["<<iVol<<"].y()/mm" << ","
-        << "FirstPointInVolume["<<iVol<<"].z()/mm" << ","
-        << "LastPointInVolume["<<iVol<<"].x()/mm" << ","
-        << "LastPointInVolume["<<iVol<<"].y()/mm" << ","
-        << "LastPointInVolume["<<iVol<<"].z()/mm" << ",";
+        << "EdepVol"    <<iVol<<"/MeV"      << ",";
+    }
+     
+    csvfile
+    << "PDGcode"            << ","
+    << "p_init_x/MeV"       << ","
+    << "p_init_y/MeV"       << ","
+    << "p_init_z/MeV"       << ",";
+    
+    for (int iVol=0; iVol<4; iVol++){
+        csvfile
+        << "FirstPtVol" <<iVol<<"_Ek/MeV"   << ","
+        << "FirstPtVol" <<iVol<<"_time/ns"  << ","
+        << "FirstPtVol" <<iVol<<"_x/mm"     << ","
+        << "FirstPtVol" <<iVol<<"_y/mm"     << ","
+        << "FirstPtVol" <<iVol<<"_z/mm"     << ","
+        << "LastPtVol"  <<iVol<<"_x/mm"     << ","
+        << "LastPtVol"  <<iVol<<"_y/mm"     << ","
+        << "LastPtVol"  <<iVol<<"_z/mm"     << ",";
     }
     
     // end line
     csvfile << std::endl;
     
-    //
+    // close file
     csvfile.close();
     
     if (fdebug>1) std::cout << "done RunAction::BeginOfRunAction(const G4Run*)" << std::endl;

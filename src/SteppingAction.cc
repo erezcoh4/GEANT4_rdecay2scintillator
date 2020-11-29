@@ -42,21 +42,17 @@
 #include "G4UnitsTable.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 SteppingAction::SteppingAction(DetectorConstruction* det, EventAction* event)
-: G4UserSteppingAction(), fDetector(det), fEventAction(event)
-{ }
+: G4UserSteppingAction(), fDetector(det), fEventAction(event){ }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-SteppingAction::~SteppingAction()
-{ }
+SteppingAction::~SteppingAction(){ }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
-    int fdebug = 0;
+    int fdebug = 3;
     if (fdebug>1) std::cout << "SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
     Run* run = static_cast<Run*>(
                                  G4RunManager::GetRunManager()->GetNonConstCurrentRun());
@@ -65,12 +61,13 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     
     if (fdebug>1) std::cout << "//which volume ?" << std::endl;
     //which volume ?
-    //
     G4LogicalVolume* lVolume = aStep->GetPreStepPoint()->GetTouchableHandle()
     ->GetVolume()->GetLogicalVolume();
-    G4int iVol = 0;
-    if (lVolume == fDetector->GetLogicScint_1()) iVol = 1;
-    if (lVolume == fDetector->GetLogicScint_2()) iVol = 2;
+    G4int iVol = 4;
+    if (lVolume == fDetector->GetLogicSourceHolder())   iVol = 0; // source holder
+    if (lVolume == fDetector->GetLogicScint_1())        iVol = 1; // scintillator 1
+    if (lVolume == fDetector->GetLogicScint_2())        iVol = 2; // scintillator 2
+    if (lVolume == fDetector->GetLogicWorld())          iVol = 4; // world
     
     if (fdebug>1) std::cout << "//count processes" << std::endl;
     // count processes
@@ -78,17 +75,20 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     const G4StepPoint* startPoint = aStep->GetPreStepPoint();
     const G4StepPoint* endPoint = aStep->GetPostStepPoint();
     
-    if (fdebug>1) std::cout << "startPoint: "      << "("
+    if (fdebug>1) {
+        std::cout << "startPoint: "      << "("
         << endPoint->GetPosition().x() << ","
         << endPoint->GetPosition().y() << ","
         << endPoint->GetPosition().z() << ")"
         << std::endl;
     
-    if (fdebug>1) std::cout << "endPoint: "      << "("
+    std::cout << "endPoint: "      << "("
         << endPoint->GetPosition().x() << ","
         << endPoint->GetPosition().y() << ","
         << endPoint->GetPosition().z() << ")"
         << std::endl;
+        
+    }
     
     G4double stepLength = aStep -> GetStepLength();
     if (fdebug>1) std::cout << "stepLength: " << stepLength / CLHEP::nm << "nm" << std::endl;
@@ -98,7 +98,7 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     if (fdebug>1) std::cout << "process: " << process->GetProcessName() << std::endl;
     run->CountProcesses(process, iVol);
     
-    if (fdebug>1) std::cout << "//energy deposit" << std::endl;
+    // if (fdebug>1) std::cout << "//energy deposit" << std::endl;
     // energy deposit
     //    //
     //    G4double edepStep = aStep->GetTotalEnergyDeposit();
@@ -123,35 +123,56 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     //
     // event, detector, particle type, track id, parent id, Edep, weight, time, process name, start x,y,z, end x,y,z
     
-    G4double edepStep = aStep->GetTotalEnergyDeposit();
-    G4double time = aStep->GetPreStepPoint()->GetGlobalTime();
-    G4double trackId = aStep->GetTrack()->GetTrackID();
+    G4double trackId = aStep -> GetTrack() -> GetTrackID();
+    G4double edepStep = aStep -> GetTotalEnergyDeposit();
+    G4double time = aStep -> GetPreStepPoint() -> GetGlobalTime();
+    G4double Ek = aStep -> GetPreStepPoint() -> GetKineticEnergy ();
     G4bool   isFirstStepInVolume = aStep->IsFirstStepInVolume ();
     G4bool   isLastStepInVolume = aStep->IsLastStepInVolume ();
+    G4String ProcessName = aStep -> GetTrack() -> GetCreatorProcess () -> GetProcessName ();
     
     if (fdebug>1){
         std::cout
         << "iVol: " << iVol << ", "
+        << "time: " << time/ns << "ns, "
+        << std::endl
         << "track id: "<< aStep->GetTrack()->GetTrackID() << ", "
         << "particle: "<< aStep->GetTrack()->GetParticleDefinition ()->GetParticleName() << ", "
+        << std::endl
         << "delta energy: "<< aStep->GetDeltaEnergy ()/MeV << " MeV, "
         << "step length: " << aStep->GetStepLength ()/um << "um, "
+        << std::endl
         << "IsFirstStepInVolume?: "<< aStep->IsFirstStepInVolume () << ", "
         << "IsLastStepInVolume?: " << aStep->IsLastStepInVolume () << ", "
         << std::endl;
     }
+    
     // plug this information into a dedicated buffer at the "event-action"
     fEventAction -> AddEdep( iVol, edepStep, time, trackId);
+    
+    if (fdebug>1)
+        std::cout
+        << "fEventAction -> AddEdep( "<<iVol<<", "<<edepStep<<", "<<time<<", "<<trackId<<");"
+        << std::endl;
     
     // check if its the first or last point in each volume,
     // and if so, stream them into the event-action buffer
     if (isFirstStepInVolume){
-        fEventAction -> SetFirstPointInVolume( iVol, trackId, aStep->GetPreStepPoint()->GetPosition() , time );
+        fEventAction -> SetFirstPointInVolume( iVol,
+                                              trackId,
+                                              aStep->GetPreStepPoint()->GetPosition() ,
+                                              time,
+                                              Ek,
+                                              ProcessName );
     }
     if (isLastStepInVolume){
-        fEventAction -> SetFirstPointInVolume( iVol, trackId, aStep->GetPostStepPoint()->GetPosition() , time );
+        fEventAction -> SetLastPointInVolume( iVol,
+                                             trackId,
+                                             aStep->GetPostStepPoint()->GetPosition() ,
+                                             time );
     }
     
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+

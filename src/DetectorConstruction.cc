@@ -113,19 +113,21 @@ void DetectorConstruction::DefineMaterials()
     // or use G4 materials data base
     //
     G4NistManager* man = G4NistManager::Instance();
-    //    fTargetMater = man->FindOrBuildMaterial("G4_CESIUM_IODIDE");
-    //    fDetectorMater = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
-    fDetectorMater = man->FindOrBuildMaterial("G4_CESIUM_IODIDE");
+    fDetectorMater = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    // ToDo: add LYSO material here for detector. This is currenlty not implemented in G4 standard NIST materials [http://www.apc.univ-paris7.fr/~franco/g4doxy/html/G4NistMaterialBuilder_8cc-source.html]
+    // but we can add it from e.g. [https://www.omegapiezo.com/crystal-scintillators/?gclid=Cj0KCQiAqo3-BRDoARIsAE5vnaJvy1-o_m-0M0PF6S9wh_2DL9QqCp5lij8_UKgSW84wbc-ZgeMRI5kaAtGvEALw_wcB]
     fPlasticMater = man->FindOrBuildMaterial("G4_POLYETHYLENE");
     
     ///G4cout << *(G4Material::GetMaterialTable()) << G4endl;
+    //    fTargetMater = man->FindOrBuildMaterial("G4_CESIUM_IODIDE");
+    //    fDetectorMater = man->FindOrBuildMaterial("G4_CESIUM_IODIDE");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
 {
     G4bool DoSourceHolder = true;
-    G4bool DoSourcePlaceHolder = true;
+    G4bool DoSourcePlaceHolder = FALSE;
     
     // Cleanup old geometry
     G4GeometryManager::GetInstance()->OpenGeometry();
@@ -142,15 +144,14 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
     fWorldLength =  10*std::max(Scint_dx,std::max(Scint_dy,Scint_dz));
     G4Box * sWorld = new G4Box("World",                                 //name
                                0.5*fWorldLength, 0.5*fWorldLength, 0.5*fWorldLength); //dimensions
+        
+    logicWorld = new G4LogicalVolume(sWorld,                    //shape
+                                 fWorldMater,                   //material
+                                 "World");                      //name
     
-    G4LogicalVolume*
-    lWorld = new G4LogicalVolume(sWorld,                    //shape
-                                 fWorldMater,               //material
-                                 "World");                  //name
-    
-    fPhysiWorld = new G4PVPlacement(0,                    //no rotation
+    fPhysiWorld = new G4PVPlacement(0,                          //no rotation
                                     G4ThreeVector(),            //at (0,0,0)
-                                    lWorld,                     //logical volume
+                                    logicWorld,                 //logical volume
                                     "World",                    //name
                                     0,                          //mother volume
                                     false,                      //no boolean operation
@@ -172,13 +173,13 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
         SourceHolderColor = G4Colour(0.8, 0.6, 0.7);
         SourceHolderVisAttributes = new G4VisAttributes(SourceHolderColor);
         logicSourceHolder->SetVisAttributes(SourceHolderVisAttributes);
-        new G4PVPlacement(0,                                  // no rotation
-                          G4ThreeVector(0,0,0),               // at (x,y,z)
-                          logicSourceHolder,             // its logical volume
-                          "placementSourceHolder",       // its name
-                          lWorld,                             // its mother  volume
-                          false,                              // no boolean operations
-                          0);                                 // copy number
+        new G4PVPlacement(0,                                    // no rotation
+                          G4ThreeVector(0,0,0),                 // at (x,y,z)
+                          logicSourceHolder,                    // its logical volume
+                          "placementSourceHolder",              // its name
+                          logicWorld,                           // its mother  volume
+                          false,                                // no boolean operations
+                          0);                                   // copy number
         // <--- end source holder
     }
 
@@ -223,7 +224,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
                       positionScint_1, // at (x,y,z)
                       logicScint_1,    // its logical volume
                       "Scintillator_1",       // its name
-                      lWorld,      // its mother  volume
+                      logicWorld,      // its mother  volume
                       false,           // no boolean operations
                       0);              // copy number
     G4ThreeVector positionScint_2 = G4ThreeVector(0 , 0 ,-0.2*mm - Scint_dz/2. );
@@ -238,7 +239,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
                       positionScint_2, // at (x,y,z)
                       logicScint_2,    // its logical volume
                       "Scintillator_2",       // its name
-                      lWorld,      // its mother  volume
+                      logicWorld,      // its mother  volume
                       false,           // no boolean operations
                       0);
     // <--- end plastic scintillator
