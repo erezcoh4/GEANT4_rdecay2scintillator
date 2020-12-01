@@ -50,7 +50,7 @@
 
 #include "G4UIExecutive.hh"
 #include "G4VisExecutive.hh"
-
+#include <time.h>
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc,char** argv) {
@@ -60,7 +60,15 @@ int main(int argc,char** argv) {
     if (argc == 1) ui = new G4UIExecutive(argc,argv);
     
     //choose the Random engine
-    G4Random::setTheEngine(new CLHEP::RanecuEngine);
+    // set a new seed every time
+    time_t timer;
+    struct tm y2k = {0};
+    y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+    y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
+    timer = time(NULL);
+    int seconds = int(difftime(timer,mktime(&y2k)));
+    G4Random::setTheEngine(new CLHEP::RanecuEngine(seconds));
+    
     
     // Construct the default run manager
 #ifdef G4MULTITHREADED

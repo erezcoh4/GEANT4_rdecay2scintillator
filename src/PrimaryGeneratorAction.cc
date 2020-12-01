@@ -87,6 +87,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
     std::cout << "generating primaries at PrimaryGeneratorAction::GeneratePrimaries()" << std::endl;
     //create vertex
+    G4Random::showEngineStatus();
     fParticleGun->GeneratePrimaryVertex(anEvent);
     std::cout << "done PrimaryGeneratorAction::GeneratePrimaries()" << std::endl;
 }

@@ -109,7 +109,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
     // track hit-position and energy deposition in scintillators
     for (int iVol=0; iVol<4; iVol++){
         csvfile
-        << "EdepVol"    <<iVol<<"/MeV"      << ",";
+        << "Edep("    <<fDetector->VolumeName(iVol)<<")/MeV"      << ",";
     }
      
     csvfile
@@ -119,15 +119,16 @@ void RunAction::BeginOfRunAction(const G4Run*)
     << "p_init_z/MeV"       << ",";
     
     for (int iVol=0; iVol<4; iVol++){
+        std::string VolName = fDetector->VolumeName(iVol);
         csvfile
-        << "FirstPtVol" <<iVol<<"_Ek/MeV"   << ","
-        << "FirstPtVol" <<iVol<<"_time/ns"  << ","
-        << "FirstPtVol" <<iVol<<"_x/mm"     << ","
-        << "FirstPtVol" <<iVol<<"_y/mm"     << ","
-        << "FirstPtVol" <<iVol<<"_z/mm"     << ","
-        << "LastPtVol"  <<iVol<<"_x/mm"     << ","
-        << "LastPtVol"  <<iVol<<"_y/mm"     << ","
-        << "LastPtVol"  <<iVol<<"_z/mm"     << ",";
+        << "FirstPt(" <<VolName<<")_Ek/MeV"   << ","
+        << "FirstPt(" <<VolName<<")_time/ns"  << ","
+        << "FirstPt(" <<VolName<<"v_x/mm"     << ","
+        << "FirstPt(" <<VolName<<"v_y/mm"     << ","
+        << "FirstPt(" <<VolName<<")_z/mm"     << ","
+        << "LastPt("  <<VolName<<")_x/mm"     << ","
+        << "LastPt("  <<VolName<<")_y/mm"     << ","
+        << "LastPt("  <<VolName<<")_z/mm"     << ",";
     }
     
     // end line

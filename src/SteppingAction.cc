@@ -52,7 +52,7 @@ SteppingAction::~SteppingAction(){ }
 
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
-    int fdebug = 3;
+    int fdebug = 0;
     if (fdebug>1) std::cout << "SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
     Run* run = static_cast<Run*>(
                                  G4RunManager::GetRunManager()->GetNonConstCurrentRun());

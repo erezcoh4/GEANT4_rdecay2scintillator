@@ -64,23 +64,20 @@ class EventAction : public G4UserEventAction
                                G4double time,
                                G4double Ek,
                                G4String fProcessName){
-        std::cout
-        << "pos: (" << pos.x() << "," << pos.y() << ","<< pos.z() << ")"
-        << ", time:" << time << ", Ek:" << Ek <<  ", fProcessName:" << fProcessName
-        << std::endl;
+        int fdebug=0;
+        if (fdebug>1){
+            std::cout
+            << "pos: (" << pos.x() << "," << pos.y() << ","<< pos.z() << ")"
+            << ", time:" << time
+            << "ns, Ek:" << Ek <<  "MeV, fProcessName:" << fProcessName
+            << std::endl;
+        }
         
         FirstPointInVolume[iVol][trackId]       = pos;
         FirstPointInVolumeTime[iVol][trackId]   = time;
         FirstPointInVolumeEk[iVol][trackId]     = Ek;
         
-//        const char * pname = fProcessName.data();
-//        std::cout << "ProcessName.data():" << pname << std::endl;
         ProcessName.at(trackId) = fProcessName;
-//        std::cout << "assigning " << ProcessName << " into " << CreatorProcessName[trackId] << std::endl;
-//        for (int j=0; j<sizeof(pname)/sizeof(pname[0]); j++){
-//            CreatorProcessName[trackId][j] = pname[j];
-//        }
-        std::cout << "done ProcessName" << std::endl;
         
     };
     void SetLastPointInVolume( G4int iVol, G4int trackId, G4ThreeVector pos, G4double time ){
@@ -97,7 +94,7 @@ class EventAction : public G4UserEventAction
     
     // fEdep is a 2-D array
     // first dimension is volume number
-    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 4 = world)
+    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 3 = world)
     // second dimension is track Id
     G4double fEdep[4][NMAXtracks];
     

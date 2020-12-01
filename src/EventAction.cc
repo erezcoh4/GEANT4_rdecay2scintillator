@@ -51,7 +51,7 @@ fTime0(-1*s)
     // initialize fEdep
     // fEdep is a 2-D array
     // first dimension is volume number
-    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 4 = world)
+    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 3 = world)
     // second dimension is track Id
     
     for (int trackId=0; trackId<NMAXtracks; trackId++){
@@ -62,9 +62,9 @@ fTime0(-1*s)
             fEdep[iVol][trackId] = 0;
             FirstPointInVolume[iVol][trackId] = G4ThreeVector(-999,-999,-999);
             LastPointInVolume[iVol][trackId] = G4ThreeVector(-999,-999,-999);
-            FirstPointInVolumeTime[iVol][trackId] = -999;
-            LastPointInVolumeTime[iVol][trackId] = -999;
-            FirstPointInVolumeEk[iVol][trackId] = -999;
+            FirstPointInVolumeTime[iVol][trackId] = -999.*s;
+            LastPointInVolumeTime[iVol][trackId] = -999.*s;
+            FirstPointInVolumeEk[iVol][trackId] = -999.*MeV;
             
         }
     }
@@ -92,7 +92,7 @@ void EventAction::BeginOfEventAction(const G4Event*)
 
 void EventAction::EndOfEventAction(const G4Event*evt)
 {
-    int fdebug = 2;
+    int fdebug = 0;
     if (fdebug>0) std::cout << "EventAction::EndOfEventAction(const G4Event*evt)" << std::endl;
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
     
@@ -243,7 +243,7 @@ void EventAction::AddEdep(G4int iVol,
     
     // fEdep is a 2-D array
     // first dimension is volume number
-    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 4 = world)
+    // (0 = source holder, 1=scintllator 1, 2 = scintillator 2, 3 = world)
     // second dimension is track Id
     fEdep[iVol][trackId] += edep;
     

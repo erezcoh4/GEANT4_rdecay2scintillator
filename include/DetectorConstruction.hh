@@ -68,6 +68,30 @@ class DetectorConstruction : public G4VUserDetectorConstruction
                    
     void PrintParameters();
     
+    std::string VolumeName(int iVol=0){
+        std::string name = "unknown-volume";
+        switch (iVol) {
+            case 0:
+                name = "source-holder";
+                break;
+            case 1:
+                name = "scint-1";
+                break;
+            case 2:
+                name = "scint-2";
+                break;
+            case 3:
+                name = "world";
+                break;
+
+            default:
+                name = "unknown-volume";
+                break;
+        }
+        return name;
+    }
+    
+    
   public:
       
     G4double GetTargetLength();
