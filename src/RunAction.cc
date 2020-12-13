@@ -43,22 +43,23 @@
 
 #include "Randomize.hh"
 #include <iomanip>
-
+#include <stdio.h>
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 RunAction::RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim)
 : G4UserRunAction(),
 fDetector(det), fPrimary(prim), fRun(0), fHistoManager(0)
 {
-    // Book predefined histograms
-    fHistoManager = new HistoManager();
+//    // Book predefined histograms
+//    fHistoManager = new HistoManager();
+    std::cout << "RunAction::RunAction()" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 RunAction::~RunAction()
 {
-    delete fHistoManager;
+//    delete fHistoManager;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -73,12 +74,13 @@ G4Run* RunAction::GenerateRun()
 
 void RunAction::BeginOfRunAction(const G4Run*)
 {
-    int fdebug = 0 ;
+    // ToDo: initialise global time somehow?
     if (fdebug>1) std::cout << "RunAction::BeginOfRunAction(const G4Run*)" << std::endl;
     // save Rndm status
     G4RunManager::GetRunManager()->SetRandomNumberStore(false);
-    if (isMaster) G4Random::showEngineStatus();
+    if (isMaster && fdebug>1) G4Random::showEngineStatus();
     
+    if (fdebug>1) std::cout << "keep run condition" << std::endl;
     // keep run condition
     if (fPrimary) {
         G4ParticleDefinition* particle
@@ -94,25 +96,33 @@ void RunAction::BeginOfRunAction(const G4Run*)
     //        analysisManager->OpenFile();
     //    }
     
-    // output csv file
-    // copy from EventAction::EndOfEventAction(const G4Event*evt)
-    csvfile.open("particles.csv", std::ios_base::out);
+    if (fdebug>1) std::cout << "output files" << std::endl;
+    // output files
+    char filelabel[50];
+    sprintf(filelabel, "ScintSourceDistance%.0fmm",fDetector->GetScintSourceDistance()/CLHEP::mm);
     
-    csvfile
-    << "eventId"          << ","
-    << "trackId"          << ","
-    << "parentId"         << ","
-    << "PrtclName"        << ","
+    // output particles csv file
+    // copy from EventAction::EndOfEventAction(const G4Event*evt)
+    char particlesfilename[50];
+    char eventsfilename[50];
+    sprintf(particlesfilename, "%s_particles.csv",filelabel);
+    particlescsvfile.open(particlesfilename, std::ios_base::out);
+    
+    particlescsvfile
+    << "eventId"            << ","
+    << "trackId"            << ","
+    << "parentId"           << ","
+    << "PrtclName"          << ","
     << "|p_init|/MeV"       << ","
     << "CreatorProcessName" << ",";
 
     // track hit-position and energy deposition in scintillators
     for (int iVol=0; iVol<4; iVol++){
-        csvfile
-        << "Edep("    <<fDetector->VolumeName(iVol)<<")/MeV"      << ",";
+        particlescsvfile
+        << "Edep("          <<fDetector->VolumeName(iVol)<<")/MeV"      << ",";
     }
      
-    csvfile
+    particlescsvfile
     << "PDGcode"            << ","
     << "p_init_x/MeV"       << ","
     << "p_init_y/MeV"       << ","
@@ -120,7 +130,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
     
     for (int iVol=0; iVol<4; iVol++){
         std::string VolName = fDetector->VolumeName(iVol);
-        csvfile
+        particlescsvfile
         << "FirstPt(" <<VolName<<")_Ek/MeV"   << ","
         << "FirstPt(" <<VolName<<")_time/ns"  << ","
         << "FirstPt(" <<VolName<<"v_x/mm"     << ","
@@ -132,10 +142,36 @@ void RunAction::BeginOfRunAction(const G4Run*)
     }
     
     // end line
-    csvfile << std::endl;
+    particlescsvfile << std::endl;
     
     // close file
-    csvfile.close();
+    particlescsvfile.close();
+    
+    
+    
+    
+    
+    
+    // output events csv file
+    // copy from EventAction::EndOfEventAction(const G4Event*evt)
+    sprintf(eventsfilename, "%s_events.csv",filelabel);
+    particlescsvfile.open(eventsfilename, std::ios_base::out);
+    
+    particlescsvfile << "eventId"            << ",";
+    for (int iVol=0; iVol<4; iVol++){
+        particlescsvfile
+        << "EdepTot("      <<fDetector->VolumeName(iVol)<<") e+e-gamma/MeV"      << ","
+        << "EdepTot("      <<fDetector->VolumeName(iVol)<<")/MeV"      << ",";
+    }
+    
+    // end line
+    particlescsvfile << std::endl;
+    
+    // close file
+    particlescsvfile.close();
+
+
+    
     
     if (fdebug>1) std::cout << "done RunAction::BeginOfRunAction(const G4Run*)" << std::endl;
 }
@@ -144,7 +180,6 @@ void RunAction::BeginOfRunAction(const G4Run*)
 
 void RunAction::EndOfRunAction(const G4Run*)
 {
-    int fdebug = 0;
     if (fdebug>1) std::cout << "RunAction::EndOfRunAction(const G4Run*)" << std::endl;
     if (isMaster) fRun->EndOfRun();
     
@@ -156,7 +191,7 @@ void RunAction::EndOfRunAction(const G4Run*)
     //    }
     
     // show Rndm status
-    if (isMaster) G4Random::showEngineStatus();
+    if (isMaster && fdebug>1) G4Random::showEngineStatus();
     if (fdebug>1) std::cout << "done RunAction::EndOfRunAction(const G4Run*)" << std::endl;
 }
 

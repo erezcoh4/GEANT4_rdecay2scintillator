@@ -49,6 +49,7 @@ fDetector(det), fParticle(0), fEkin(0.)
 {
     fEdepTarget = fEdepTarget2 = 0.;
     fEdepDetect = fEdepDetect2 = 0.;
+    // std::cout << "Run::Run()" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -83,6 +83,18 @@ class DetectorConstruction : public G4VUserDetectorConstruction
             case 3:
                 name = "world";
                 break;
+            case 4:
+                name = "SiPM-1";
+                break;
+            case 5:
+                name = "SiPM-2";
+                break;
+            case 6:
+                name = "Electronics-1";
+                break;
+            case 7:
+                name = "Electronics-2";
+                break;
 
             default:
                 name = "unknown-volume";
@@ -94,6 +106,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     
   public:
       
+    G4double Scint_source_dz=10.*CLHEP::mm;
+    
+    
     G4double GetTargetLength();
     G4double GetTargetRadius();
     G4Material* GetTargetMaterial();       
@@ -115,50 +130,73 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4LogicalVolume *       GetLogicScint_2(){ return logicScint_2; };
     G4LogicalVolume *  GetLogicSourceHolder(){ return logicSourceHolder; };
     G4LogicalVolume *         GetLogicWorld(){ return logicWorld; };
+    G4LogicalVolume *        GetLogicSiPM_1(){ return logicSiPM_1; };
+    G4LogicalVolume *        GetLogicSiPM_2(){ return logicSiPM_2; };
+    G4LogicalVolume * GetLogicElectronics_1(){ return logicElectronics_1; };
+    G4LogicalVolume * GetLogicElectronics_2(){ return logicElectronics_2; };
+
     
+    G4double         GetScintSourceDistance(){ return Scint_source_dz;};
     
     
     
   private:
-    G4LogicalVolume*   logicWorld;
-    G4double           fTargetLength; 
+    
+    G4double           fTargetLength;
     G4double           fTargetRadius;
-    G4Material*        fTargetMater;
-    G4LogicalVolume*   fLogicTarget;
-                 
     G4double           fDetectorLength;
     G4double           fDetectorThickness;
-    G4Material*        fDetectorMater;
-    G4LogicalVolume*   fLogicDetector;
-               
     G4double           fWorldLength;
     G4double           fWorldRadius;
-    G4Material*        fWorldMater;     
+    
+    
     G4VPhysicalVolume* fPhysiWorld;
-                
     DetectorMessenger* fDetectorMessenger;
     
-    G4Material*         fPlasticMater;
-
-    
-    
-    G4ThreeVector posSourceHolder;
-    G4ThreeVector positionScint_1, positionScint_2;
+            
     
     G4Box * solidSourceHolder;
-    G4Sphere * sourcePlaceHolder;
     G4Box * solidScint_1, * solidScint_2;
+    G4Box * solidSiPM_1, * solidSiPM_2;
+    G4Box * solidElectronics_1, * solidElectronics_2;
     
+    
+    G4Sphere * sourcePlaceHolder;
+    
+    
+    
+    G4Material*        fTargetMater;
+    G4Material*        fPlasticMater;
+    G4Material*        fSiPMMater;
+    G4Material*        fElectronicsMaterial;
+    G4Material*        fDetectorMater;
+    G4Material*        fWorldMater;
+
+    G4ThreeVector posSourceHolder;
+    G4ThreeVector positionScint_1, positionScint_2;
+    G4ThreeVector positionSiPM_1, positionSiPM_2;
+    G4ThreeVector positionElectronics_1, positionElectronics_2;
+
+    
+    G4LogicalVolume * logicSiPM_1, * logicSiPM_2;
+    G4LogicalVolume * logicElectronics_1, * logicElectronics_2;
+    G4LogicalVolume * fLogicDetector;
+    G4LogicalVolume * fLogicTarget;
+    G4LogicalVolume * logicWorld;
     G4LogicalVolume * logicSourceHolder;
     G4LogicalVolume * logicSourcePlaceHolder;
-    
+
     G4Colour SourceHolderColor;
     G4Colour SourceRed;
     G4Colour ScintBlue;
-    
-    G4VisAttributes* SourceHolderVisAttributes;
-    G4VisAttributes* sourceVisAttributes;
-    G4VisAttributes* ScintVisAttributes;
+    G4Colour SiPMGreen;
+    G4Colour ElectronicsColor;
+
+    G4VisAttributes * SourceHolderVisAttributes;
+    G4VisAttributes * sourceVisAttributes;
+    G4VisAttributes * ScintVisAttributes;
+    G4VisAttributes * SiPMVisAttributes;
+    G4VisAttributes * ElectronicsVisAttributes;
 
     
   private:

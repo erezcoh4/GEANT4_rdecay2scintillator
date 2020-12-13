@@ -67,7 +67,9 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
+    int fdebug=0;
     if (fParticleGun->GetParticleDefinition() == G4Geantino::Geantino()) {
+        // 22Na
         G4int Z = 11, A = 22;
         G4double ionCharge   = 0.*eplus;
         G4double excitEnergy = 0.*keV;
@@ -85,11 +87,11 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     //    fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
     //    fParticleGun->SetParticleEnergy(1.*keV);
 
-    std::cout << "generating primaries at PrimaryGeneratorAction::GeneratePrimaries()" << std::endl;
+    if (fdebug>1) std::cout << "generating primaries at PrimaryGeneratorAction::GeneratePrimaries()" << std::endl;
     //create vertex
-    G4Random::showEngineStatus();
+    if (fdebug>1) G4Random::showEngineStatus();
     fParticleGun->GeneratePrimaryVertex(anEvent);
-    std::cout << "done PrimaryGeneratorAction::GeneratePrimaries()" << std::endl;
+    if (fdebug>1) std::cout << "done PrimaryGeneratorAction::GeneratePrimaries()" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
