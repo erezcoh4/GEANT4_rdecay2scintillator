@@ -42,8 +42,8 @@
 #include "G4UnitsTable.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-SteppingAction::SteppingAction(DetectorConstruction* det, EventAction* event)
-: G4UserSteppingAction(), fDetector(det), fEventAction(event){ }
+SteppingAction::SteppingAction(DetectorConstruction* det, EventAction* event, int _fdebug_)
+: G4UserSteppingAction(), fDetector(det), fEventAction(event), fdebug(_fdebug_) { }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 SteppingAction::~SteppingAction(){ }
@@ -52,8 +52,6 @@ SteppingAction::~SteppingAction(){ }
 
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
-    
-    int fdebug = 1;
     if (fdebug>1) std::cout << "SteppingAction::UserSteppingAction(const G4Step* aStep)" << std::endl;
     Run* run = static_cast<Run*>(
                                  G4RunManager::GetRunManager()->GetNonConstCurrentRun());

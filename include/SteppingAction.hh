@@ -44,10 +44,11 @@ class EventAction;
 class SteppingAction : public G4UserSteppingAction
 {
   public:
-    SteppingAction(DetectorConstruction*, EventAction*);
+    SteppingAction(DetectorConstruction*, EventAction*,  int _fdebug_=0);
    ~SteppingAction();
 
     virtual void UserSteppingAction(const G4Step*);
+    int fdebug;
     
   private:
     DetectorConstruction* fDetector;  

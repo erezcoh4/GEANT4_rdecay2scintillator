@@ -51,7 +51,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
   
-    DetectorConstruction();
+    DetectorConstruction( int _fdebug_=0 );
    ~DetectorConstruction();
 
   public:
@@ -106,26 +106,35 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     
   public:
       
-    G4double Scint_source_dz=10.*CLHEP::mm;
     
+    int fdebug;
     
-    G4double GetTargetLength();
-    G4double GetTargetRadius();
-    G4Material* GetTargetMaterial();       
-    G4LogicalVolume* GetLogicTarget();
+    G4double Scint_source_dz=1.*CLHEP::mm;
+    G4double Source_y = 10.*CLHEP::mm;
     
-    G4double GetDetectorLength();
-    G4double GetDetectorThickness();
-    G4Material* GetDetectorMaterial();                 
-    G4LogicalVolume* GetLogicDetector();      
-         
-    
+    char * GetOutputFileLabel(){
+        char filelabel[50];
+        sprintf(filelabel, "ScintSourceDistance%.0fmm_SourceY%.0fmm",Scint_source_dz/CLHEP::mm, Source_y/CLHEP::mm);
+        return filelabel;
+    };
 
+    
+    
+    G4double                GetTargetLength();
+    G4double              GetDetectorLength();
+    G4double           GetDetectorThickness();
+    G4double                GetTargetRadius();
+    G4double                     GetSourceY(){ return Source_y;};
+    G4double         GetScintSourceDistance(){ return Scint_source_dz;};
+    
+    G4Material* GetTargetMaterial();       
+    G4Material* GetDetectorMaterial();
+    
+    G4LogicalVolume* GetLogicTarget();
+    G4LogicalVolume* GetLogicDetector();
     
     G4LogicalVolume * logicScint_1;
     G4LogicalVolume * logicScint_2;
-    
-    
     G4LogicalVolume *       GetLogicScint_1(){ return logicScint_1; };
     G4LogicalVolume *       GetLogicScint_2(){ return logicScint_2; };
     G4LogicalVolume *  GetLogicSourceHolder(){ return logicSourceHolder; };
@@ -136,7 +145,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4LogicalVolume * GetLogicElectronics_2(){ return logicElectronics_2; };
 
     
-    G4double         GetScintSourceDistance(){ return Scint_source_dz;};
+    
     
     
     

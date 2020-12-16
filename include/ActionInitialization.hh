@@ -41,14 +41,14 @@ class G4VSteppingVerbose;
 class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    ActionInitialization(DetectorConstruction* detector);
+    ActionInitialization(DetectorConstruction* detector, int _fdebug_=0);
     virtual ~ActionInitialization();
 
     virtual void BuildForMaster() const;
     virtual void Build() const;
     
     virtual G4VSteppingVerbose* InitializeSteppingVerbose() const;
-   
+    int fdebug;
   private:
     DetectorConstruction* fDetector;
 };

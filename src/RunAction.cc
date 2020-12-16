@@ -46,13 +46,13 @@
 #include <stdio.h>
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim)
+RunAction::RunAction(DetectorConstruction* det, PrimaryGeneratorAction* prim, int _fdebug_)
 : G4UserRunAction(),
-fDetector(det), fPrimary(prim), fRun(0), fHistoManager(0)
+fDetector(det), fPrimary(prim), fRun(0), fHistoManager(0), fdebug(_fdebug_)
 {
 //    // Book predefined histograms
 //    fHistoManager = new HistoManager();
-    std::cout << "RunAction::RunAction()" << std::endl;
+    if (fdebug>1) std::cout << "RunAction::RunAction()" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -98,14 +98,18 @@ void RunAction::BeginOfRunAction(const G4Run*)
     
     if (fdebug>1) std::cout << "output files" << std::endl;
     // output files
-    char filelabel[50];
-    sprintf(filelabel, "ScintSourceDistance%.0fmm",fDetector->GetScintSourceDistance()/CLHEP::mm);
-    
     // output particles csv file
     // copy from EventAction::EndOfEventAction(const G4Event*evt)
     char particlesfilename[50];
     char eventsfilename[50];
-    sprintf(particlesfilename, "%s_particles.csv",filelabel);
+    sprintf(particlesfilename, "%s_particles.csv",fDetector->GetOutputFileLabel());
+    sprintf(eventsfilename, "%s_events.csv",fDetector->GetOutputFileLabel());
+    if (fdebug>1){
+        std::cout << "particlesfilename: " << particlesfilename << std::endl;
+        std::cout << "eventsfilename: " << eventsfilename << std::endl;
+    }
+    
+    
     particlescsvfile.open(particlesfilename, std::ios_base::out);
     
     particlescsvfile
@@ -154,21 +158,20 @@ void RunAction::BeginOfRunAction(const G4Run*)
     
     // output events csv file
     // copy from EventAction::EndOfEventAction(const G4Event*evt)
-    sprintf(eventsfilename, "%s_events.csv",filelabel);
-    particlescsvfile.open(eventsfilename, std::ios_base::out);
+    eventscsvfile.open(eventsfilename, std::ios_base::out);
     
-    particlescsvfile << "eventId"            << ",";
+    eventscsvfile << "eventId"            << ",";
     for (int iVol=0; iVol<4; iVol++){
-        particlescsvfile
+        eventscsvfile
         << "EdepTot("      <<fDetector->VolumeName(iVol)<<") e+e-gamma/MeV"      << ","
         << "EdepTot("      <<fDetector->VolumeName(iVol)<<")/MeV"      << ",";
     }
     
     // end line
-    particlescsvfile << std::endl;
+    eventscsvfile << std::endl;
     
     // close file
-    particlescsvfile.close();
+    eventscsvfile.close();
 
 
     

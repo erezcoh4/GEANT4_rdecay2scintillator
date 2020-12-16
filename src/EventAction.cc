@@ -50,10 +50,14 @@ fTime0(-1*s)
 {
     InitialiseArrays();
     SetDebug(_fdebug_);
-        
-    sprintf(filelabel, "ScintSourceDistance%.0fmm",fDetector->GetScintSourceDistance()/CLHEP::mm);
-    sprintf(particlesfilename, "%s_particles.csv",filelabel);
-    sprintf(eventsfilename, "%s_events.csv",filelabel);
+            
+    sprintf(particlesfilename, "%s_particles.csv",fDetector->GetOutputFileLabel());
+    sprintf(eventsfilename, "%s_events.csv",fDetector->GetOutputFileLabel());
+    if (fdebug>1){
+        std::cout << "particlesfilename: " << particlesfilename << std::endl;
+        std::cout << "eventsfilename: " << eventsfilename << std::endl;
+    }
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -104,6 +108,7 @@ void EventAction::BeginOfEventAction(const G4Event*)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void EventAction::EndOfEventAction(const G4Event*evt) {
+    G4int eventId = evt -> GetEventID();
     // --------------------------------
     // write a csv file for each particle that was emitted from the source:
     //
@@ -133,15 +138,12 @@ void EventAction::EndOfEventAction(const G4Event*evt) {
     if (fdebug>0) std::cout << "EventAction::EndOfEventAction(const G4Event*evt)" << std::endl;
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
     
-    if (fdebug>1) std::cout << "event " << evt -> GetEventID() << ",opening output csv and write data" << std::endl;
     
+    // extract event data and write to
     // output files
-    
-    // extract event data
-    
-    G4int eventId = evt -> GetEventID();
-    
+    if (fdebug>1) std::cout << "event " << evt -> GetEventID() << ",opening output csv and write data" << std::endl;
     if (fdebug>1) std::cout << "trajectory container: " << std::endl;
+    
     // trajectory container
     G4TrajectoryContainer * trajCont = evt -> GetTrajectoryContainer();
     if (fdebug>1) std::cout << "got trajCont, of size " << sizeof(trajCont)/sizeof(trajCont[0]) << std::endl;
@@ -150,11 +152,11 @@ void EventAction::EndOfEventAction(const G4Event*evt) {
         return;
     }
     
-//    std::vector< G4VTrajectory * > * trajectories = trajCont -> GetVector ();
+//        std::vector< G4VTrajectory * > * trajectories = trajCont -> GetVector (); // delete by Dec-30,2020
     TrajectoryVector * trajectories = trajCont -> GetVector ();
     
     if (fdebug>1) std::cout << "for (auto traj:*trajectories)" << std::endl;
-    if (fdebug>1) std::cout << "output particles csv file " << filelabel << std::endl;
+    if (fdebug>1) std::cout << "output particles csv file " << particlesfilename << std::endl;
     
     if (do_particles_file){
         // output particles csv file
@@ -223,6 +225,7 @@ void EventAction::EndOfEventAction(const G4Event*evt) {
             
         }
         particlescsvfile.close();
+        if (fdebug>1) std::cout << "wrote to particlescsvfile " << particlesfilename << std::endl;
     }
     
     if (do_events_file) {
@@ -240,9 +243,10 @@ void EventAction::EndOfEventAction(const G4Event*evt) {
         eventsscsvfile << std::endl;
         // close file
         eventsscsvfile.close();
+        if (fdebug>1) std::cout << "wrote to eventsscsvfile " << eventsfilename << std::endl;
     }
     
-    if (fdebug>1) std::cout << "Done EventAction::EndOfEventAction(const G4Event*evt) " << filelabel << std::endl;
+    if (fdebug>1) std::cout << "Done EventAction::EndOfEventAction(const G4Event*evt) " << std::endl;
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

@@ -1,26 +1,5 @@
 //
 // ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
 /// \file rdecay02.cc
@@ -54,7 +33,10 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc,char** argv) {
-    int fdebug = 0 ;
+    // verbosity
+    // ToDo: move this somehow to the macro file???
+    int fdebug = 0;
+    
     //detect interactive mode (if no arguments) and define UI session
     G4UIExecutive* ui = 0;
     if (argc == 1) ui = new G4UIExecutive(argc,argv);
@@ -106,7 +88,7 @@ int main(int argc,char** argv) {
     runManager->SetUserInitialization(phys);
     
     if (fdebug>1) std::cout << "main(): runManager->SetUserInitialization(new ActionInitialization(det));" << std::endl;
-    runManager->SetUserInitialization(new ActionInitialization(det));
+    runManager->SetUserInitialization(new ActionInitialization(det,fdebug));
     
     //initialize visualization
     //  G4VisManager* visManager = nullptr;
@@ -127,7 +109,7 @@ int main(int argc,char** argv) {
         if (fdebug>1) std::cout << "UImanager->ApplyCommand(/control/execute erez_vis.mac);" << std::endl;
         //        UImanager->ApplyCommand("/control/execute vis.mac");
                 UImanager->ApplyCommand("/control/execute erez_vis.mac");
-//                UImanager->ApplyCommand("/control/execute no_vis.mac"); THIS DOESNT WORK FOR SOME REASON
+        //                UImanager->ApplyCommand("/control/execute no_vis.mac"); THIS DOESNT WORK FOR SOME REASON
         if (fdebug>1) std::cout << "ui->SessionStart();" << std::endl;
         ui->SessionStart();
         if (fdebug>1) std::cout << "delete ui;" << std::endl;

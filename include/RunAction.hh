@@ -49,15 +49,15 @@ class HistoManager;
 class RunAction : public G4UserRunAction
 {
   public:
-    int fdebug = 0;
-    RunAction(DetectorConstruction*, PrimaryGeneratorAction*);
+    int fdebug;
+    RunAction(DetectorConstruction*, PrimaryGeneratorAction*, int _fdebug_ = 0);
    ~RunAction();
 
   public:
     virtual G4Run* GenerateRun();  
     virtual void BeginOfRunAction(const G4Run*);
     virtual void   EndOfRunAction(const G4Run*);
-    std::ofstream particlescsvfile, eventsscsvfile;
+    std::ofstream particlescsvfile, eventscsvfile;
     
     
   private:

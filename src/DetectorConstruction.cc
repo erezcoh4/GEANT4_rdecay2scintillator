@@ -1,34 +1,5 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
 /// \file DetectorConstruction.cc
 /// \brief Implementation of the DetectorConstruction class
-//
-//
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "DetectorConstruction.hh"
@@ -57,25 +28,14 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-DetectorConstruction::DetectorConstruction()
+DetectorConstruction::DetectorConstruction( int _fdebug_ )
 :G4VUserDetectorConstruction(),
 fTargetMater(0), fLogicTarget(0),
 fDetectorMater(0), fLogicDetector(0),
 fWorldMater(0), fPhysiWorld(0),
-fDetectorMessenger(0)
+fDetectorMessenger(0),fdebug(_fdebug_)
 {
-    //    fTargetLength      = 1*cm;
-    //    fTargetRadius      = 0.5*cm;
-    //    fDetectorLength    = 5*cm;
-    //    fDetectorThickness = 2*cm;
-    //
-    //    fWorldLength = std::max(fTargetLength,fDetectorLength);
-    // fWorldRadius = fTargetRadius + fDetectorThickness;
-    
-//    fWorldLength = 10.*cm;
-//    fWorldRadius = 10.*cm;
     DefineMaterials();
-    
     fDetectorMessenger = new DetectorMessenger(this);
 }
 
@@ -95,7 +55,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 void DetectorConstruction::DefineMaterials()
 {
-    int fdebug = 0;
     // build materials
     G4Element* N  = new G4Element("Nitrogen", "N", 7, 14.01*g/mole);
     G4Element* O  = new G4Element("Oxygen",   "O", 8, 16.00*g/mole);
@@ -105,15 +64,11 @@ void DetectorConstruction::DefineMaterials()
     Air20->AddElement(O, fractionmass=0.3);
     fWorldMater = Air20;
     
-    
-
-    
-    
     G4NistManager* man = G4NistManager::Instance();
     // source holder material - plastic
     fPlasticMater = man->FindOrBuildMaterial("G4_POLYETHYLENE");
     
-    // scintillation materials
+    // scintillation materials - do not delete
     // scintillation materials from [http://www.sixiangguo.net/code/geant4/AppDevelop/apas06.html]
     //    fDetectorMater = man->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
     //    fDetectorMater = man->FindOrBuildMaterial("G4_SODIUM_IODIDE");
@@ -244,7 +199,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructVolumes()
         sourceVisAttributes = new G4VisAttributes(SourceRed);
         logicSourcePlaceHolder->SetVisAttributes(sourceVisAttributes);
         new G4PVPlacement(0,                                  // no rotation
-                          G4ThreeVector(0,0,0),               // at (x,y,z)
+                          G4ThreeVector(0,Source_y,0),        // at (x,y,z)
                           logicSourcePlaceHolder,             // its logical volume
                           "placementSourcePlaceHolder",       // its name
                           logicSourceHolder,                  // its mother  volume
