@@ -2,8 +2,8 @@
 // ********************************************************************
 // ********************************************************************
 //
-/// \file rdecay02.cc
-/// \brief Main program of the radioactivedecay/rdecay02 example
+/// \file FNMCoptimizer.cc
+/// \brief Main program FNMCoptimizer
 //
 //
 //
@@ -35,7 +35,7 @@
 int main(int argc,char** argv) {
     // verbosity
     // ToDo: move this somehow to the macro file???
-    int fdebug = 0;
+    int fdebug = 2;
     
     //detect interactive mode (if no arguments) and define UI session
     G4UIExecutive* ui = 0;
@@ -108,8 +108,7 @@ int main(int argc,char** argv) {
         // interactive mode
         if (fdebug>1) std::cout << "UImanager->ApplyCommand(/control/execute erez_vis.mac);" << std::endl;
         //        UImanager->ApplyCommand("/control/execute vis.mac");
-                UImanager->ApplyCommand("/control/execute erez_vis.mac");
-        //                UImanager->ApplyCommand("/control/execute no_vis.mac"); THIS DOESNT WORK FOR SOME REASON
+        UImanager->ApplyCommand("/control/execute vis.mac");
         if (fdebug>1) std::cout << "ui->SessionStart();" << std::endl;
         ui->SessionStart();
         if (fdebug>1) std::cout << "delete ui;" << std::endl;
@@ -120,6 +119,7 @@ int main(int argc,char** argv) {
         G4String command = "/control/execute ";
         G4String fileName = argv[1];
         UImanager->ApplyCommand(command+fileName);
+        // no_vis.mac  DOESNT WORK FOR SOME REASON
     }
     
     //job termination
